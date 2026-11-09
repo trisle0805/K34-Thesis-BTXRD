@@ -585,13 +585,11 @@ Linear
 \ell_i\in\mathbb{R}^{8}
 \]
 
-Classifier head được khóa là một lớp tuyến tính:
+Classifier head là **một Linear layer trực tiếp ra 8 logits**, cùng dạng với B0 (\(z_{img}\rightarrow Linear\rightarrow 8\)) và B1 (\([z_{img};z_{meta}]\rightarrow Linear\rightarrow 8\)).
 
-\[
-\ell_i=W_cz_i+b_c
-\]
+B0, B1, B2, B3 và A1 đều dùng linear head. Không dùng MLP classifier, để B0 → B2 chỉ khác ở nhánh knowledge và gain không thể quy cho classifier phức tạp hơn.
 
-B0, B1, B2, B3 và A1 phải dùng classifier linear tương ứng với input dimension của từng nhánh. Code có thể hỗ trợ MLP qua config cho experiment ngoài core, nhưng không main config nào dùng MLP.
+Tính phi tuyến của nhánh knowledge đến từ softmax trong cross-attention và \(\tanh\) trong learned aggregation; các projection \(W_v\), \(W_q\) là tuyến tính.
 
 ---
 
@@ -957,7 +955,7 @@ Không claim:
 | Main aggregation | learned attention pooling |
 | Aggregation ablation | mean pooling |
 | Classification fusion | global image feature + knowledge feature |
-| Classifier head | Linear cho B0/B1/B2/B3/A1 |
+| Classifier head | Linear → 8 logits, giống B0 (B0/B1/B2/B3/A1) |
 | Main loss | sqrt-inverse weighted Cross-Entropy |
 | Auxiliary loss | class-level knowledge contrastive loss |
 | Contrastive prototype | fixed prototype trong frozen text space |

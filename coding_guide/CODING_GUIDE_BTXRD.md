@@ -2,7 +2,7 @@
 
 > **Đối tượng đọc:** coding agent trong VS Code.
 > **Mục tiêu:** xây một Python package config-driven (`btxrd`) để train B0, B1, B2, B3, A1 bằng cùng một codebase.
-> **Nguồn chuẩn:** Folder thesis có file `SOURCE_OF_TRUTH_BTXRD_8CLASS_VI.md` (SOT). Nếu guide này mâu thuẫn với SOT thì SOT thắng. Hỏi lại thay vì tự suy diễn.
+> **Nguồn chuẩn:** `SOURCE_OF_TRUTH_BTXRD_8CLASS_VI.md` (SOT). Nếu guide này mâu thuẫn với SOT thì SOT thắng. Hỏi lại thay vì tự suy diễn.
 > **Phạm vi:** chỉ code model, data, loss, training, prediction và test. Không làm XAI, không làm cross-validation, không viết báo cáo/biểu đồ. Notebook sẽ gọi package và tự lo evaluation, lưu kết quả.
 
 ---
@@ -207,7 +207,7 @@ File cache `.pt`:
 }
 ```
 
-- `load_text_embeddings(cache_path, kb, expected_model_name) -> Tensor[M, 768]`: chọn hàng theo `kb.ids`, **giữ đúng thứ tự**. Nếu `kb_sha256` trong cache ≠ `kb.sha256` → raise (bắt cache lại). Nếu `model_name` trong cache ≠ `expected_model_name` → raise với thông báo nêu rõ cả hai giá trị; trainer phải truyền `cfg.knowledge.text_encoder_name`.
+- `load_text_embeddings(cache_path, kb) -> Tensor[M, 768]`: chọn hàng theo `kb.ids`, **giữ đúng thứ tự**. Nếu `kb_sha256` trong cache ≠ `kb.sha256` → raise (bắt cache lại). Nếu `model_name` trong cache ≠ `knowledge.text_encoder_name` → raise.
 - `transformers` là optional dependency (`pip install -e .[text]`), chỉ cần cho script cache. Training không import `transformers`.
 - CLI: `python scripts/cache_text_embeddings.py --kb <KB_JSON> --out <CACHE_PT> [--model ...] [--max-length 64] [--device cuda]`.
 
@@ -302,8 +302,8 @@ logits = head(z)                                  # [B, 8]
 
 `model.head.type`:
 
-- `linear`: `Linear(in_dim, 8)`. Dùng cho toàn bộ năm main config B0, B1, B2, B3 và A1.
-- `mlp`: `Linear(in_dim, 512) → ReLU → Dropout(0.3) → Linear(512, 8)`. Code vẫn hỗ trợ qua config cho experiment ngoài core, nhưng không main config nào được chọn MLP.
+- `linear`: `Linear(in_dim, 8)`. **Dùng cho cả 5 run chính (B0, B1, B2, B3, A1)**, theo SOT §9. B0 → B2 chỉ khác ở nhánh knowledge.
+- `mlp`: `Linear(in_dim, 512) → ReLU → Dropout(0.3) → Linear(512, 8)`. Chỉ giữ như tùy chọn trong code; không config chính nào dùng.
 
 `in_dim` tính tự động: 1664 (+32 nếu metadata) (+d nếu knowledge).
 
@@ -696,7 +696,7 @@ Test bắt buộc:
    - KB thật: 68 ID; sau exclude còn 65, đúng thứ tự P001–P065; kích thước prototype = `EXPECTED_PROTO_SIZES_EXCL`.
    - Recompute từ `classes` khớp `prototypes`.
    - Test này skip nếu không có file KB thật, cấu hình qua biến môi trường `BTXRD_KB_JSON`.
-2. **Cache:** chọn đúng thứ tự theo `kb.ids`; sha mismatch hoặc `model_name` khác encoder cấu hình → raise; lỗi model mismatch phải nêu cả actual và expected.
+2. **Cache:** chọn đúng thứ tự theo `kb.ids`; sha mismatch → raise.
 3. **Image encoder:** `z_img` allclose với `densenet169` của torchvision (classifier = Identity) khi load cùng `state_dict`.
 4. **Shapes cho cả 5 config:** logits [B, 8]; B2: H [B, 65, 256], attn [B, 65, 49], z_kb [B, 256], α [B, 65] với tổng α = 1; A1: z_kb == H.mean(1), α là None; B3: u [B, 768], ‖u‖ = 1.
 5. **Frozen text:** `text_emb` và `prototypes` là buffer, `requires_grad = False`, không nằm trong optimizer; ‖g_c‖ = 1.
@@ -705,7 +705,6 @@ Test bắt buộc:
 8. **Metadata:** vector 9 chiều đúng thứ tự; age z-score dùng thống kê train; category lạ → raise.
 9. **Config:** base merge, override dotted key, key lạ → raise, các rule λ/contrastive → raise, `text_encoder_frozen: false` → raise.
 10. **Smoke end-to-end:** `train()` 2 epoch trên dataset giả cho B0, B1, B2, B3, A1 → tạo đủ file output; `resume` chạy tiếp được; `predict()` trả đủ cột.
-11. **Main classifier protocol:** resolve cả năm main config và assert `model.head.type == "linear"`.
 
 ---
 
@@ -716,24 +715,3 @@ Test bắt buộc:
 - [ ] Không có đường dẫn tuyệt đối, đường dẫn Drive hay thông tin cá nhân nào trong repo.
 - [ ] README có: cài đặt, cache text embedding, train, predict, bảng config.
 - [ ] Không có code XAI, cross-validation, vẽ biểu đồ hay đánh giá test bên trong training.
-
----
-
-## 13. Các quyết định implementation bổ sung đã khóa
-
-Các quyết định dưới đây bổ sung và, nếu có khác biệt, thay thế chi tiết tương ứng ở các mục trên; các phần khác của guide giữ nguyên.
-
-1. **Thứ tự cuối epoch:** train → validation → ghi history → cập nhật best và counter early stopping, lưu `best.pt` nếu val Macro-F1 tăng strictly → `scheduler.step()` → lưu `last.pt` với scheduler state và counter mới → dừng nếu đủ patience. `last.pt` luôn sẵn sàng cho epoch kế tiếp.
-2. **Contrastive λ = 0:** validation giữ nghiêm, B3 bắt buộc λ > 0. Test λ = 0 chỉ ở mức hàm loss. B2 không có `phi` và loss B2 == CE; B3 có `phi` và loss B3 == CE + λ·L_con.
-3. **Metadata naming:** phần chuẩn hóa/one-hot dữ liệu là `MetadataPreprocessor` trong `data/metadata.py`; neural MLP là `MetadataMLP` trong `models/fusion.py`.
-4. **Tên cột:** `data.columns` gồm `image_id`, `label`, `split`, `class_weight`, `age`, `gender`, `region`, `view`. Mặc định lần lượt là `image_id`, `class8`, `split`, `weight_sqrt_inv`, `age`, `gender`, `region`, `view`. File class weights dùng chung key `label` cho cột tên lớp.
-5. **Predict config:** kiến trúc lấy từ config checkpoint; config truyền vào chỉ cung cấp runtime settings (path dữ liệu, batch size, workers, pin memory, debug). Mọi key kiến trúc lệch phải raise và liệt kê các key bị lệch. `metadata_stats` luôn lấy từ checkpoint.
-6. **Predict không phụ thuộc KB/cache:** `text_emb` và `prototypes` là buffer trong `state_dict`; predict không cần `kb_json` hay text embedding cache để dựng model. Nếu config có cung cấp hai file này thì chỉ dùng để đối chiếu `kb_ids`/sha256; lệch → raise.
-7. **Resume:** chỉ cam kết functional resume, không cam kết bit-exact. Vẫn lưu global RNG state và state của train generator.
-8. **Dữ liệu metadata:** missing/non-numeric/non-finite age, `age_std == 0`, duplicate ID, merge không one-to-one hoặc category ngoài config đều raise; không impute.
-9. **Class weights:** phải đúng 8 dòng theo `CLASS_NAMES`, không trùng, hữu hạn và lớn hơn 0; không normalize lại.
-10. **AUROC thiếu lớp:** AUROC lớp không xác định nhận `NaN`; `macro_auroc_ovr` chỉ tính trên lớp hợp lệ và trả thêm `n_auroc_classes`. Khi ghi JSON, giá trị không hữu hạn chuyển thành `null`.
-11. **Validation giá trị khóa:** `backbone == densenet169`, `input_size == 224`, `text_dim == 768`, số lớp bằng 8, metadata dimension suy ra từ categories phải bằng 9 và `knowledge.dim % knowledge.num_heads == 0`. `dim`, `num_heads`, `attention_dropout`, `pool_hidden` vẫn cấu hình được; 5 config chính giữ default.
-12. **Predict extras:** `return_extras=True` trả `(DataFrame, extras)`. A1 có `aggregation_weights=None`. B0/B1 có mọi attention extra và `kb_ids` bằng `None`.
-13. **Run directory an toàn trên Drive:** không xóa thư mục run cũ. Nếu `resume=false, overwrite=true`, đổi tên thư mục cũ thành `<run_name>__old_<YYYYmmdd-HHMMSS>` rồi tạo thư mục mới. `resume=true, overwrite=true` → raise. `resume=true` nhưng thiếu `last.pt` → raise. `resume=false, overwrite=false` và thư mục đã tồn tại → raise.
-14. **Dependencies:** `.` dùng cho train/predict; `.[text]` cho cache; `.[dev]` cho pytest; `.[text,dev]` cho môi trường đầy đủ. `requirements-dev.txt` gồm core + transformers + pytest.
