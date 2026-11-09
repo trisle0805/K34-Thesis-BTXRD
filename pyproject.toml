@@ -1,0 +1,31 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "btxrd"
+version = "0.1.0"
+description = "Config-driven BTXRD 8-class proposition-guided classification"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+  "torch>=2.3",
+  "torchvision>=0.18",
+  "numpy",
+  "pandas>=1.5",
+  "pillow>=9",
+  "scikit-learn>=1.2",
+  "pyyaml>=6.0",
+  "tqdm",
+]
+
+[project.optional-dependencies]
+text = ["transformers>=4.30"]
+dev = ["pytest>=7"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra"

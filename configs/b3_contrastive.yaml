@@ -1,0 +1,4 @@
+base: b2_knowledge.yaml
+run: {name: b3_contrastive}
+model: {use_contrastive: true}
+loss: {contrastive_weight: 0.1, contrastive_temperature: 0.07}

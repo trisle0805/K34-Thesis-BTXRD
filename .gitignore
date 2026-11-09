@@ -1,0 +1,76 @@
+# Python bytecode and interpreter caches
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Build and packaging artifacts
+build/
+dist/
+*.egg-info/
+.eggs/
+*.egg
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+
+# Test, coverage, lint, and type-check caches
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+.nox/
+.mypy_cache/
+.pyright/
+.ruff_cache/
+
+# Notebooks
+.ipynb_checkpoints/
+
+# Editor and OS-local files
+.vscode/
+.idea/
+*.code-workspace
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Environment files and credentials
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# Local datasets and generated experiment artifacts
+# Source code/config/docs/tests remain tracked; large or private runtime files do not.
+data/
+datasets/
+images/
+artifacts/
+outputs/
+runs/
+checkpoints/
+wandb/
+
+# Model checkpoints, tensor caches, and generated tabular results
+*.pt
+*.pth
+*.ckpt
+*.safetensors
+*.npy
+*.npz
+predictions_*.csv
+metrics_*.json
+history.csv
+run_info.json
+config_resolved.yaml
+
+# Logs and temporary files
+*.log
+*.tmp
+*.temp
+~$*

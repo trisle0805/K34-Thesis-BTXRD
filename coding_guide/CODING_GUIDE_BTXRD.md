@@ -2,7 +2,7 @@
 
 > **Đối tượng đọc:** coding agent trong VS Code.
 > **Mục tiêu:** xây một Python package config-driven (`btxrd`) để train B0, B1, B2, B3, A1 bằng cùng một codebase.
-> **Nguồn chuẩn:** `SOURCE_OF_TRUTH_BTXRD_8CLASS_VI.md` (SOT). Nếu guide này mâu thuẫn với SOT thì SOT thắng. Hỏi lại thay vì tự suy diễn.
+> **Nguồn chuẩn:** Folder thesis có file `SOURCE_OF_TRUTH_BTXRD_8CLASS_VI.md` (SOT). Nếu guide này mâu thuẫn với SOT thì SOT thắng. Hỏi lại thay vì tự suy diễn.
 > **Phạm vi:** chỉ code model, data, loss, training, prediction và test. Không làm XAI, không làm cross-validation, không viết báo cáo/biểu đồ. Notebook sẽ gọi package và tự lo evaluation, lưu kết quả.
 
 ---
@@ -716,3 +716,24 @@ Test bắt buộc:
 - [ ] Không có đường dẫn tuyệt đối, đường dẫn Drive hay thông tin cá nhân nào trong repo.
 - [ ] README có: cài đặt, cache text embedding, train, predict, bảng config.
 - [ ] Không có code XAI, cross-validation, vẽ biểu đồ hay đánh giá test bên trong training.
+
+---
+
+## 13. Các quyết định implementation bổ sung đã khóa
+
+Các quyết định dưới đây bổ sung và, nếu có khác biệt, thay thế chi tiết tương ứng ở các mục trên; các phần khác của guide giữ nguyên.
+
+1. **Thứ tự cuối epoch:** train → validation → ghi history → cập nhật best và counter early stopping, lưu `best.pt` nếu val Macro-F1 tăng strictly → `scheduler.step()` → lưu `last.pt` với scheduler state và counter mới → dừng nếu đủ patience. `last.pt` luôn sẵn sàng cho epoch kế tiếp.
+2. **Contrastive λ = 0:** validation giữ nghiêm, B3 bắt buộc λ > 0. Test λ = 0 chỉ ở mức hàm loss. B2 không có `phi` và loss B2 == CE; B3 có `phi` và loss B3 == CE + λ·L_con.
+3. **Metadata naming:** phần chuẩn hóa/one-hot dữ liệu là `MetadataPreprocessor` trong `data/metadata.py`; neural MLP là `MetadataMLP` trong `models/fusion.py`.
+4. **Tên cột:** `data.columns` gồm `image_id`, `label`, `split`, `class_weight`, `age`, `gender`, `region`, `view`. Mặc định lần lượt là `image_id`, `class8`, `split`, `weight_sqrt_inv`, `age`, `gender`, `region`, `view`. File class weights dùng chung key `label` cho cột tên lớp.
+5. **Predict config:** kiến trúc lấy từ config checkpoint; config truyền vào chỉ cung cấp runtime settings (path dữ liệu, batch size, workers, pin memory, debug). Mọi key kiến trúc lệch phải raise và liệt kê các key bị lệch. `metadata_stats` luôn lấy từ checkpoint.
+6. **Predict không phụ thuộc KB/cache:** `text_emb` và `prototypes` là buffer trong `state_dict`; predict không cần `kb_json` hay text embedding cache để dựng model. Nếu config có cung cấp hai file này thì chỉ dùng để đối chiếu `kb_ids`/sha256; lệch → raise.
+7. **Resume:** chỉ cam kết functional resume, không cam kết bit-exact. Vẫn lưu global RNG state và state của train generator.
+8. **Dữ liệu metadata:** missing/non-numeric/non-finite age, `age_std == 0`, duplicate ID, merge không one-to-one hoặc category ngoài config đều raise; không impute.
+9. **Class weights:** phải đúng 8 dòng theo `CLASS_NAMES`, không trùng, hữu hạn và lớn hơn 0; không normalize lại.
+10. **AUROC thiếu lớp:** AUROC lớp không xác định nhận `NaN`; `macro_auroc_ovr` chỉ tính trên lớp hợp lệ và trả thêm `n_auroc_classes`. Khi ghi JSON, giá trị không hữu hạn chuyển thành `null`.
+11. **Validation giá trị khóa:** `backbone == densenet169`, `input_size == 224`, `text_dim == 768`, số lớp bằng 8, metadata dimension suy ra từ categories phải bằng 9 và `knowledge.dim % knowledge.num_heads == 0`. `dim`, `num_heads`, `attention_dropout`, `pool_hidden` vẫn cấu hình được; 5 config chính giữ default.
+12. **Predict extras:** `return_extras=True` trả `(DataFrame, extras)`. A1 có `aggregation_weights=None`. B0/B1 có mọi attention extra và `kb_ids` bằng `None`.
+13. **Run directory an toàn trên Drive:** không xóa thư mục run cũ. Nếu `resume=false, overwrite=true`, đổi tên thư mục cũ thành `<run_name>__old_<YYYYmmdd-HHMMSS>` rồi tạo thư mục mới. `resume=true, overwrite=true` → raise. `resume=true` nhưng thiếu `last.pt` → raise. `resume=false, overwrite=false` và thư mục đã tồn tại → raise.
+14. **Dependencies:** `.` dùng cho train/predict; `.[text]` cho cache; `.[dev]` cho pytest; `.[text,dev]` cho môi trường đầy đủ. `requirements-dev.txt` gồm core + transformers + pytest.

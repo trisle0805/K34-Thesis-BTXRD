@@ -1,0 +1,84 @@
+run:
+  name: null
+  overwrite: false
+
+seed: 2026
+
+paths:
+  image_dir: null
+  splits_csv: null
+  class_weights_csv: null
+  metadata_csv: null
+  kb_json: null
+  text_embedding_cache: null
+  output_dir: null
+
+data:
+  columns:
+    image_id: image_id
+    label: class8
+    split: split
+    class_weight: weight_sqrt_inv
+    age: age
+    gender: gender
+    region: region
+    view: view
+  image_ext: .png
+  input_size: 224
+  expected_split_counts: {train: 2510, val: 538, test: 538}
+  augmentation:
+    degrees: 7
+    translate: [0.03, 0.03]
+    scale: [0.95, 1.05]
+  batch_size: 32
+  num_workers: 2
+  pin_memory: true
+
+metadata:
+  features: [age, gender, region, view]
+  categories:
+    gender: [M, F]
+    region: [upper limb, lower limb, pelvis]
+    view: [frontal, lateral, oblique]
+  hidden: 32
+  dropout: 0.2
+
+model:
+  backbone: densenet169
+  pretrained: true
+  use_knowledge: false
+  use_metadata: false
+  use_contrastive: false
+  aggregation: learned
+  use_positional_embedding: false
+  head:
+    type: linear
+    hidden: 512
+    dropout: 0.3
+
+knowledge:
+  exclude_ids: [P066, P067, P068]
+  text_encoder_name: ncbi/MedCPT-Query-Encoder
+  text_encoder_frozen: true
+  text_dim: 768
+  dim: 256
+  num_heads: 4
+  attention_dropout: 0.1
+  pool_hidden: 128
+
+loss:
+  contrastive_weight: 0.0
+  contrastive_temperature: 0.07
+
+train:
+  epochs: 100
+  lr: 1.0e-4
+  weight_decay: 1.0e-4
+  step_size: 25
+  gamma: 0.1
+  amp: true
+  early_stopping: {enabled: false, patience: 15}
+  resume: false
+
+debug:
+  limit_per_split: null
