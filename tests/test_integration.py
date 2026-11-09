@@ -141,3 +141,70 @@ def test_functional_resume_continues_epoch(monkeypatch, config_overrides, tmp_pa
     assert checkpoint["epoch"] == 1
     assert checkpoint["scheduler_state"]["last_epoch"] == 2
     assert "rng_state" in checkpoint and "train_generator_state" in checkpoint
+
+def test_resume_rejects_config_mismatch(monkeypatch, config_overrides, tmp_path):
+    monkeypatch.setattr("btxrd.models.model.DenseNet169Encoder", TinyImageEncoder)
+    first_cfg = load_config(
+        "configs/b0_image.yaml",
+        config_overrides(output_dir=tmp_path, run_name="mismatch", **{"train.epochs": 1, "train.amp": False}),
+    )
+    train(first_cfg)
+    resumed_cfg = load_config(
+        "configs/b0_image.yaml",
+        config_overrides(
+            output_dir=tmp_path,
+            run_name="mismatch",
+            **{"train.epochs": 2, "train.resume": True, "train.amp": False, "train.lr": 2e-4},
+        ),
+    )
+    with pytest.raises(ValueError, match=r"Resume config differs.*train\.lr"):
+        train(resumed_cfg)
+
+def test_resume_completed_run_returns_without_training(monkeypatch, config_overrides, tmp_path):
+    monkeypatch.setattr("btxrd.models.model.DenseNet169Encoder", TinyImageEncoder)
+    first_cfg = load_config(
+        "configs/b0_image.yaml",
+        config_overrides(output_dir=tmp_path, run_name="complete", **{"train.epochs": 1, "train.amp": False}),
+    )
+    first = train(first_cfg)
+    resumed_cfg = load_config(
+        "configs/b0_image.yaml",
+        config_overrides(
+            output_dir=tmp_path,
+            run_name="complete",
+            **{"train.epochs": 1, "train.resume": True, "train.amp": False},
+        ),
+    )
+    monkeypatch.setattr(
+        "btxrd.training.trainer.build_dataloaders",
+        lambda *args, **kwargs: pytest.fail("completed resume must not build dataloaders"),
+    )
+    resumed = train(resumed_cfg)
+    assert resumed == first
+
+def test_resume_early_stopped_run_returns_without_training(monkeypatch, config_overrides, tmp_path):
+    monkeypatch.setattr("btxrd.models.model.DenseNet169Encoder", TinyImageEncoder)
+    first_cfg = load_config(
+        "configs/b1_metadata.yaml",
+        config_overrides(output_dir=tmp_path, run_name="early-stopped", **{"train.epochs": 1, "train.amp": False}),
+    )
+    first = train(first_cfg)
+    checkpoint_path = Path(first["run_dir"]) / "last.pt"
+    checkpoint = torch.load(checkpoint_path, map_location="cpu", weights_only=False)
+    checkpoint["early_stopping_counter"] = first_cfg.train.early_stopping.patience
+    save_checkpoint(checkpoint_path, checkpoint)
+    resumed_cfg = load_config(
+        "configs/b1_metadata.yaml",
+        config_overrides(
+            output_dir=tmp_path,
+            run_name="early-stopped",
+            **{"train.epochs": 2, "train.resume": True, "train.amp": False},
+        ),
+    )
+    monkeypatch.setattr(
+        "btxrd.training.trainer.build_dataloaders",
+        lambda *args, **kwargs: pytest.fail("early-stopped resume must not build dataloaders"),
+    )
+    resumed = train(resumed_cfg)
+    assert resumed["epochs_ran"] == 1
+    assert resumed["stopped_early"] is True

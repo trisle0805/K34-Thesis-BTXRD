@@ -23,9 +23,83 @@ from btxrd.losses.contrastive import PrototypeContrastiveLoss
 from btxrd.models.model import BTXRDModel
 from btxrd.training.checkpoint import load_checkpoint, save_checkpoint
 from btxrd.training.metrics import compute_metrics
+from btxrd.training.predict import _ARCHITECTURE_KEYS
 from btxrd.utils.io import environment_info, git_commit, sha256_file, write_json
 from btxrd.utils.seed import capture_rng_state, restore_rng_state, seed_everything
 from btxrd.constants import CLASS_NAMES
+
+_RESUME_PROTOCOL_KEYS = (
+    "loss",
+    "seed",
+    "train.lr",
+    "train.weight_decay",
+    "train.step_size",
+    "train.gamma",
+    "train.amp",
+    "train.early_stopping",
+    "data.augmentation",
+    "data.batch_size",
+)
+_RESUME_ALLOWED_DIFFERENCES = (
+    "paths",
+    "data.num_workers",
+    "data.pin_memory",
+    "train.epochs",
+    "train.resume",
+)
+
+def _get_dotted(data: dict[str, Any], key: str) -> Any:
+    value: Any = data
+    for part in key.split("."):
+        value = value[part]
+    return value
+
+def _flatten_config(data: dict[str, Any], prefix: str = "") -> dict[str, Any]:
+    flattened: dict[str, Any] = {}
+    for key, value in data.items():
+        dotted = f"{prefix}.{key}" if prefix else key
+        if isinstance(value, dict):
+            flattened.update(_flatten_config(value, dotted))
+        else:
+            flattened[dotted] = value
+    return flattened
+
+def _validate_resume_config(cfg, checkpoint_config: dict[str, Any]) -> None:
+    runtime = cfg.to_dict()
+    required_keys = (*_ARCHITECTURE_KEYS, *_RESUME_PROTOCOL_KEYS)
+    required_mismatches = {
+        key for key in required_keys
+        if _get_dotted(runtime, key) != _get_dotted(checkpoint_config, key)
+    }
+    runtime_flat = _flatten_config(runtime)
+    checkpoint_flat = _flatten_config(checkpoint_config)
+    all_keys = runtime_flat.keys() | checkpoint_flat.keys()
+    disallowed_mismatches = {
+        key for key in all_keys
+        if runtime_flat.get(key) != checkpoint_flat.get(key)
+        and not any(key == allowed or key.startswith(f"{allowed}.") for allowed in _RESUME_ALLOWED_DIFFERENCES)
+    }
+    mismatches = sorted(required_mismatches | disallowed_mismatches)
+    if mismatches:
+        raise ValueError(f"Resume config differs from checkpoint at: {', '.join(mismatches)}")
+
+def _completed_resume_result(cfg, checkpoint: dict[str, Any], run_dir: Path) -> dict[str, Any] | None:
+    history = list(checkpoint.get("history", []))
+    next_epoch = int(checkpoint["epoch"]) + 1
+    early_counter = int(checkpoint.get("early_stopping_counter", 0))
+    stopped_early = (
+        cfg.train.early_stopping.enabled
+        and early_counter >= cfg.train.early_stopping.patience
+    )
+    if not stopped_early and next_epoch < cfg.train.epochs:
+        return None
+    return {
+        "run_dir": str(run_dir),
+        "best_epoch": int(checkpoint.get("best_epoch", -1)),
+        "best_val_macro_f1": float(checkpoint["best_val_macro_f1"]),
+        "epochs_ran": len(history),
+        "stopped_early": stopped_early,
+    }
 
 
 def _prepare_run_dir(cfg) -> Path:
@@ -116,6 +190,11 @@ def train(cfg) -> dict[str, Any]:
     # RNG and DataLoader generator states must remain CPU ByteTensors. Model and
     # optimizer loading will move parameter-associated state to the target device.
     resume_checkpoint = load_checkpoint(run_dir / "last.pt", "cpu") if cfg.train.resume else None
+    if resume_checkpoint:
+        _validate_resume_config(cfg, resume_checkpoint["config"])
+        completed_result = _completed_resume_result(cfg, resume_checkpoint, run_dir)
+        if completed_result is not None:
+            return completed_result
     metadata_stats = resume_checkpoint.get("metadata_stats") if resume_checkpoint else None
     generator_state = resume_checkpoint.get("train_generator_state") if resume_checkpoint else None
     data = build_dataloaders(cfg, ("train", "val"), metadata_stats, generator_state)
@@ -208,7 +287,7 @@ def train(cfg) -> dict[str, Any]:
     info = {
         **result,
         "duration_seconds": time.time() - started,
-        "git_commit": git_commit(Path.cwd()),
+        "git_commit": git_commit(Path(__file__).resolve()),
         "environment": environment_info(),
         "parameters": {
             "total": sum(parameter.numel() for parameter in model.parameters()),

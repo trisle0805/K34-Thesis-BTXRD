@@ -47,14 +47,14 @@ desktop.ini
 
 # Local datasets and generated experiment artifacts
 # Source code/config/docs/tests remain tracked; large or private runtime files do not.
-data/
-datasets/
-images/
-artifacts/
-outputs/
-runs/
-checkpoints/
-wandb/
+/data/
+/datasets/
+/images/
+/artifacts/
+/outputs/
+/runs/
+/checkpoints/
+/wandb/
 
 # Model checkpoints, tensor caches, and generated tabular results
 *.pt

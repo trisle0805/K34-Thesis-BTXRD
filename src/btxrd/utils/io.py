@@ -23,11 +23,23 @@ def sha256_file(path: str | Path) -> str:
     return digest.hexdigest()
 
 
+def find_repo_root(start: str | Path | None = None) -> Path | None:
+    path = Path(start).resolve() if start is not None else Path(__file__).resolve()
+    if path.is_file():
+        path = path.parent
+    for candidate in (path, *path.parents):
+        if (candidate / ".git").exists():
+            return candidate
+    return None
+
 def git_commit(root: str | Path | None = None) -> str | None:
+    repo_root = find_repo_root(root)
+    if repo_root is None:
+        return None
     try:
         return subprocess.run(
             ["git", "rev-parse", "HEAD"],
-            cwd=root,
+            cwd=repo_root,
             check=True,
             capture_output=True,
             text=True,

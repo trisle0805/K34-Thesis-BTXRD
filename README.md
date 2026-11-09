@@ -29,7 +29,7 @@ pip install -e ".[text,dev]"
 pytest -q
 ```
 
-In Colab, clone the GitHub repository on each runtime, install it in editable mode, and point `paths.output_dir` to a persistent Google Drive directory. Existing run folders are never deleted: with `run.overwrite=true`, the previous folder is renamed with an `__old_<timestamp>` suffix.
+In Colab, clone the GitHub repository on each runtime, install it in editable mode, and point `paths.output_dir` to persistent storage. Existing run folders are never deleted: with `run.overwrite=true`, the previous folder is renamed with an `__old_<timestamp>` suffix.
 
 ## Required data
 
@@ -51,16 +51,15 @@ The cache script encodes all 68 propositions in canonical `query_ids` order with
 
 ```bash
 python scripts/cache_text_embeddings.py \
-  --config configs/b2_knowledge.yaml \
-  --set paths.kb_json=/path/kb.json \
-        paths.text_embedding_cache=/path/text_embeddings.pt \
-        paths.image_dir=/unused \
-        paths.splits_csv=/unused \
-        paths.class_weights_csv=/unused \
-        paths.output_dir=/unused
+  --kb <KB_JSON> \
+  --out <CACHE_PT> \
+  --model ncbi/MedCPT-Query-Encoder \
+  --max-length 64 \
+  --batch-size 32 \
+  --device cuda
 ```
 
-The additional paths are configuration-schema requirements; the cache script does not read image or split data.
+`--model`, `--max-length`, `--batch-size`, and `--device` are optional and default to the values shown above.
 
 ## Train
 
@@ -73,7 +72,7 @@ python scripts/train.py --config configs/b2_knowledge.yaml --set \
   paths.class_weights_csv=/path/class_weights.csv \
   paths.kb_json=/path/kb.json \
   paths.text_embedding_cache=/path/text_embeddings.pt \
-  paths.output_dir=/content/drive/MyDrive/BTXRD/runs
+  paths.output_dir=<OUTPUT_ROOT>
 ```
 
 For B1, also set `paths.metadata_csv`. Training reads only the train and validation splits and writes:

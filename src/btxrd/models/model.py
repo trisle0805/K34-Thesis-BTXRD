@@ -55,7 +55,6 @@ class BTXRDModel(nn.Module):
             cfg.model.head.type,
         )
 
-        self.phi: nn.Linear | None = None
         if cfg.model.use_contrastive:
             if class_to_ids is None or kb_ids is None or text_embeddings is None:
                 raise ValueError("class_to_ids and kb_ids are required for contrastive initialization")
@@ -90,7 +89,7 @@ class BTXRDModel(nn.Module):
                 z_kb=z_kb,
                 aggregation_weights=aggregation_weights,
             )
-            if self.phi is not None:
+            if hasattr(self, "phi"):
                 result["u"] = F.normalize(self.phi(z_kb), dim=-1)
         result["logits"] = self.classifier(torch.cat(fusion_features, dim=-1))
         return result
