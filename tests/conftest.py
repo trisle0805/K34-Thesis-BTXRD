@@ -59,7 +59,7 @@ def synthetic_assets(tmp_path: Path) -> dict[str, Path]:
     }), encoding="utf-8")
     kb = load_kb(kb_json, [], CLASS_NAMES)
     cache = tmp_path / "text_cache.pt"
-    save_text_embedding_cache(cache, kb, torch.randn(68, 768), "fake", 64)
+    save_text_embedding_cache(cache, kb, torch.randn(68, 768), "ncbi/MedCPT-Query-Encoder", 64)
     return {
         "root": tmp_path,
         "image_dir": image_dir,

@@ -52,12 +52,17 @@ def save_text_embedding_cache(path: str | Path, kb: KnowledgeBase, embeddings: t
     torch.save(payload, path)
 
 
-def load_text_embeddings(cache_path: str | Path, kb: KnowledgeBase) -> torch.Tensor:
+def load_text_embeddings(cache_path: str | Path, kb: KnowledgeBase, expected_model_name: str) -> torch.Tensor:
     cache = torch.load(cache_path, map_location="cpu", weights_only=False)
     required = {"ids", "texts", "embeddings", "model_name", "max_length", "pooling", "kb_sha256", "kb_version"}
     missing = required - set(cache)
     if missing:
         raise ValueError(f"Embedding cache missing field(s): {sorted(missing)}")
+    if cache["model_name"] != expected_model_name:
+        raise ValueError(
+            f"Embedding cache model_name mismatch: cache={cache['model_name']!r}, "
+            f"expected={expected_model_name!r}"
+        )
     if cache["kb_sha256"] != kb.sha256:
         raise ValueError("Embedding cache KB sha256 mismatch; rebuild the cache")
     if cache["kb_version"] != kb.version:

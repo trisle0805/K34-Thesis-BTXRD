@@ -3,4 +3,3 @@ run: {name: b2_knowledge}
 model:
   use_knowledge: true
   aggregation: learned
-  head: {type: mlp}

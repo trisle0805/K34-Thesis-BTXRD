@@ -71,7 +71,7 @@ def _verify_optional_knowledge(cfg, checkpoint: dict[str, Any]) -> None:
         if kb.ids != checkpoint.get("kb_ids") or kb.sha256 != checkpoint.get("kb_sha256"):
             raise ValueError("Provided KB does not match checkpoint kb_ids/sha256")
         if cache_path:
-            cached = load_text_embeddings(cache_path, kb)
+            cached = load_text_embeddings(cache_path, kb, cfg.knowledge.text_encoder_name)
             expected = checkpoint["model_buffers"]["text_embeddings"]
             if cached.shape != expected.shape or not torch.equal(cached, expected):
                 raise ValueError("Provided text embedding cache does not match checkpoint embeddings")

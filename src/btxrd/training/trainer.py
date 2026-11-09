@@ -135,7 +135,11 @@ def _build_model_inputs(cfg, checkpoint: dict[str, Any] | None = None):
             raise ValueError("Knowledge checkpoint is missing kb_ids/class_to_ids")
         return embeddings, kb_ids, class_to_ids, checkpoint.get("kb_sha256")
     kb = load_kb(cfg.paths.kb_json, cfg.knowledge.exclude_ids, CLASS_NAMES)
-    embeddings = load_text_embeddings(cfg.paths.text_embedding_cache, kb)
+    embeddings = load_text_embeddings(
+        cfg.paths.text_embedding_cache,
+        kb,
+        cfg.knowledge.text_encoder_name,
+    )
     return embeddings, kb.ids, kb.class_to_ids, kb.sha256
 
 

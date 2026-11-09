@@ -580,12 +580,18 @@ sau đó:
 \[
 z_i
 \rightarrow
-MLP
+Linear
 \rightarrow
 \ell_i\in\mathbb{R}^{8}
 \]
 
-B2 và B3 phải dùng cùng classifier architecture.
+Classifier head được khóa là một lớp tuyến tính:
+
+\[
+\ell_i=W_cz_i+b_c
+\]
+
+B0, B1, B2, B3 và A1 phải dùng classifier linear tương ứng với input dimension của từng nhánh. Code có thể hỗ trợ MLP qua config cho experiment ngoài core, nhưng không main config nào dùng MLP.
 
 ---
 
@@ -951,6 +957,7 @@ Không claim:
 | Main aggregation | learned attention pooling |
 | Aggregation ablation | mean pooling |
 | Classification fusion | global image feature + knowledge feature |
+| Classifier head | Linear cho B0/B1/B2/B3/A1 |
 | Main loss | sqrt-inverse weighted Cross-Entropy |
 | Auxiliary loss | class-level knowledge contrastive loss |
 | Contrastive prototype | fixed prototype trong frozen text space |

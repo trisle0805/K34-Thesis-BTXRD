@@ -55,7 +55,6 @@ def model_config(use_knowledge=False, use_metadata=False, use_contrastive=False,
         use_contrastive=use_contrastive,
         aggregation=aggregation,
     )
-    raw["model"]["head"]["type"] = "mlp" if use_knowledge else "linear"
     return Config(raw)
 
 def knowledge_inputs():
@@ -79,6 +78,20 @@ def test_config_merge_override_and_unknown():
     assert cfg.train.epochs == 2
     with pytest.raises(KeyError):
         load_config("configs/b0_image.yaml", required + ["train.typo=1"])
+
+@pytest.mark.parametrize(
+    "config_path",
+    [
+        "configs/b0_image.yaml",
+        "configs/b1_metadata.yaml",
+        "configs/b2_knowledge.yaml",
+        "configs/b3_contrastive.yaml",
+        "configs/ablations/a1_mean_aggregation.yaml",
+    ],
+)
+def test_main_configs_use_linear_classifier(config_path, config_overrides):
+    cfg = load_config(config_path, config_overrides())
+    assert cfg.model.head.type == "linear"
 
 def test_git_commit_is_discovered_from_package_file():
     repo_root = find_repo_root(Path(__file__).resolve())
@@ -130,12 +143,24 @@ def test_kb_and_embedding_cache_strict_order(tmp_path):
     embeddings = torch.randn(68, 768)
     cache_path = tmp_path / "cache.pt"
     save_text_embedding_cache(cache_path, kb, embeddings, "fake", 64)
-    assert torch.equal(load_text_embeddings(cache_path, kb), embeddings)
+    assert torch.equal(load_text_embeddings(cache_path, kb, "fake"), embeddings)
     cache = torch.load(cache_path, weights_only=False)
     cache["ids"] = list(reversed(cache["ids"]))
     torch.save(cache, cache_path)
     with pytest.raises(ValueError, match="IDs/order"):
-        load_text_embeddings(cache_path, kb)
+        load_text_embeddings(cache_path, kb, "fake")
+
+def test_embedding_cache_rejects_different_model_name(tmp_path):
+    kb_path = tmp_path / "kb.json"
+    make_kb(kb_path)
+    kb = load_kb(kb_path, [], CLASS_NAMES)
+    cache_path = tmp_path / "cache.pt"
+    save_text_embedding_cache(cache_path, kb, torch.randn(68, 768), "cached/model", 64)
+    with pytest.raises(
+        ValueError,
+        match=r"model_name mismatch: cache='cached/model', expected='expected/model'",
+    ):
+        load_text_embeddings(cache_path, kb, "expected/model")
 
 
 def test_kb_requires_exactly_68_propositions(tmp_path):
@@ -247,7 +272,7 @@ def test_b3_backward_reaches_all_knowledge_branches_without_mutating_buffers(mon
         "token_proj": model.cross_attention.token_proj.weight.grad,
         "pooling.W_h": model.knowledge_aggregation.W_h.weight.grad,
         "phi": model.phi.weight.grad,
-        "head": model.classifier.network[-1].weight.grad,
+        "head": model.classifier.network.weight.grad,
     }
     assert all(gradient is not None and torch.count_nonzero(gradient) > 0 for gradient in gradients.values())
     assert torch.equal(model.cross_attention.text_emb, text_before)

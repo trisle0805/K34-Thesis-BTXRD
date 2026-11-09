@@ -207,7 +207,7 @@ File cache `.pt`:
 }
 ```
 
-- `load_text_embeddings(cache_path, kb) -> Tensor[M, 768]`: chọn hàng theo `kb.ids`, **giữ đúng thứ tự**. Nếu `kb_sha256` trong cache ≠ `kb.sha256` → raise (bắt cache lại).
+- `load_text_embeddings(cache_path, kb, expected_model_name) -> Tensor[M, 768]`: chọn hàng theo `kb.ids`, **giữ đúng thứ tự**. Nếu `kb_sha256` trong cache ≠ `kb.sha256` → raise (bắt cache lại). Nếu `model_name` trong cache ≠ `expected_model_name` → raise với thông báo nêu rõ cả hai giá trị; trainer phải truyền `cfg.knowledge.text_encoder_name`.
 - `transformers` là optional dependency (`pip install -e .[text]`), chỉ cần cho script cache. Training không import `transformers`.
 - CLI: `python scripts/cache_text_embeddings.py --kb <KB_JSON> --out <CACHE_PT> [--model ...] [--max-length 64] [--device cuda]`.
 
@@ -302,8 +302,8 @@ logits = head(z)                                  # [B, 8]
 
 `model.head.type`:
 
-- `linear`: `Linear(in_dim, 8)`. Dùng cho B0 và B1, giống notebook.
-- `mlp`: `Linear(in_dim, 512) → ReLU → Dropout(0.3) → Linear(512, 8)`. Dùng cho B2, B3, A1, **cùng một cấu hình** cho cả ba (`model.head.hidden = 512`, `model.head.dropout = 0.3`).
+- `linear`: `Linear(in_dim, 8)`. Dùng cho toàn bộ năm main config B0, B1, B2, B3 và A1.
+- `mlp`: `Linear(in_dim, 512) → ReLU → Dropout(0.3) → Linear(512, 8)`. Code vẫn hỗ trợ qua config cho experiment ngoài core, nhưng không main config nào được chọn MLP.
 
 `in_dim` tính tự động: 1664 (+32 nếu metadata) (+d nếu knowledge).
 
@@ -613,7 +613,6 @@ run: {name: b2_knowledge}
 model:
   use_knowledge: true
   aggregation: learned
-  head: {type: mlp}
 ```
 
 ```yaml
@@ -637,9 +636,9 @@ Bảng đối chiếu:
 |---|:---:|:---:|:---:|:---:|:---:|:---:|
 | B0 | – | – | – | – | linear | off |
 | B1 | – | ✓ | – | – | linear | on (15) |
-| B2 | ✓ | – | learned | – | mlp | off |
-| B3 | ✓ | – | learned | ✓ (λ=0.1, τ=0.07) | mlp | off |
-| A1 | ✓ | – | mean | – | mlp | off |
+| B2 | ✓ | – | learned | – | linear | off |
+| B3 | ✓ | – | learned | ✓ (λ=0.1, τ=0.07) | linear | off |
+| A1 | ✓ | – | mean | – | linear | off |
 
 ---
 
@@ -697,7 +696,7 @@ Test bắt buộc:
    - KB thật: 68 ID; sau exclude còn 65, đúng thứ tự P001–P065; kích thước prototype = `EXPECTED_PROTO_SIZES_EXCL`.
    - Recompute từ `classes` khớp `prototypes`.
    - Test này skip nếu không có file KB thật, cấu hình qua biến môi trường `BTXRD_KB_JSON`.
-2. **Cache:** chọn đúng thứ tự theo `kb.ids`; sha mismatch → raise.
+2. **Cache:** chọn đúng thứ tự theo `kb.ids`; sha mismatch hoặc `model_name` khác encoder cấu hình → raise; lỗi model mismatch phải nêu cả actual và expected.
 3. **Image encoder:** `z_img` allclose với `densenet169` của torchvision (classifier = Identity) khi load cùng `state_dict`.
 4. **Shapes cho cả 5 config:** logits [B, 8]; B2: H [B, 65, 256], attn [B, 65, 49], z_kb [B, 256], α [B, 65] với tổng α = 1; A1: z_kb == H.mean(1), α là None; B3: u [B, 768], ‖u‖ = 1.
 5. **Frozen text:** `text_emb` và `prototypes` là buffer, `requires_grad = False`, không nằm trong optimizer; ‖g_c‖ = 1.
@@ -706,6 +705,7 @@ Test bắt buộc:
 8. **Metadata:** vector 9 chiều đúng thứ tự; age z-score dùng thống kê train; category lạ → raise.
 9. **Config:** base merge, override dotted key, key lạ → raise, các rule λ/contrastive → raise, `text_encoder_frozen: false` → raise.
 10. **Smoke end-to-end:** `train()` 2 epoch trên dataset giả cho B0, B1, B2, B3, A1 → tạo đủ file output; `resume` chạy tiếp được; `predict()` trả đủ cột.
+11. **Main classifier protocol:** resolve cả năm main config và assert `model.head.type == "linear"`.
 
 ---
 
