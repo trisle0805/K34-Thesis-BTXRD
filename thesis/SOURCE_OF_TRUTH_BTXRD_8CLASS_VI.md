@@ -1,58 +1,24 @@
-# SOURCE OF TRUTH — BTXRD 8 lớp
+# SOURCE OF TRUTH — BTXRD 8 lớp (v2)
 
-## Phân loại u xương có tích hợp tri thức y khoa theo proposition
+## Phân loại u xương với tri thức y khoa phân tầng dạng proposition
 
-> **Trạng thái:** Đã cập nhật sau khi chuyển từ bài toán 3 lớp sang 8 lớp và sau khi hoàn thành các baseline B0/B1.
+> **Trạng thái:** v2 (đã khóa), cập nhật 11/11/2026. Thay thế toàn bộ v1 (kiến trúc gộp proposition B2/B3/A1 và decoder R1). Đã chỉnh 3 điểm sau review: F1 tắt PECL; H2-N dùng tên nút cho cả query và prototype PECL; φ lấy chiều từ encoder.
 >
-> **Mục đích:** Đây là tài liệu chuẩn duy nhất cho hướng nghiên cứu BTXRD hiện tại, bao gồm task, kiến trúc mô hình, tổ chức code, ablation, đánh giá và phạm vi claim.
+> **Mục đích:** tài liệu chuẩn duy nhất cho hướng nghiên cứu BTXRD: bài toán, tri thức, kiến trúc, thí nghiệm, đánh giá và phạm vi claim. Nếu tài liệu khác mâu thuẫn với file này thì file này thắng.
 >
-> **Nguyên tắc cốt lõi:** Giữ câu chuyện nghiên cứu tập trung: một ý tưởng chính là proposition-structured medical knowledge, một kiến trúc knowledge-guided rõ ràng, một auxiliary Contrastive Learning hợp lý, số lượng ablation vừa đủ và phần XAI dựa trên lesion grounding.
+> **Mục tiêu tối thượng:** đưa tri thức y khoa vào mô hình deep learning. Tri thức được tổ chức theo tầng, từ đặc trưng chung tới đặc trưng riêng, và được dùng trực tiếp trong đường ra quyết định của mô hình.
+>
+> **Nguồn cảm hứng phương pháp:** RAD (Li et al., NeurIPS 2025): tri thức làm query của transformer decoder, mỗi query ra logit của chính nó, cộng thêm contrastive loss kéo đặc trưng ảnh về prototype tri thức. Đã đối chiếu với code chính thức `github.com/tdlhl/RAD`. Phương pháp của luận văn **không phải RAD**: tri thức có cấu trúc phân tầng, decoder phân tầng, loss phân tầng (xem §6).
 
 ---
 
-# 1. Bài toán nghiên cứu
+# 1. Bài toán
 
 ## 1.1. Dataset
 
-Dataset sử dụng: **BTXRD**
-
-Tổng số ảnh raw:
-
-\[
-3746
-\]
-
-Hai nhóm composite sau không được dùng trong task chính:
-
-- `other bt`
-- `other mt`
-
-Một ảnh có nhãn chồng lấn được xử lý ở bước preprocessing:
-
-- `IMG001276.jpeg` → `synovial_osteochondroma`
-
-Sau khi loại hai nhóm composite, dataset chính còn:
-
-\[
-N=3586
-\]
-
-ảnh.
+**BTXRD**: 3.746 ảnh raw. Loại hai nhóm composite `other bt` và `other mt`, còn **N = 3.586** ảnh. Ảnh có nhãn chồng lấn `IMG001276.jpeg` được gán `synovial_osteochondroma` ở bước preprocessing.
 
 ## 1.2. Các lớp
-
-Task chính là phân loại **8 lớp**:
-
-1. `normal`
-2. `osteochondroma`
-3. `multiple_osteochondromas`
-4. `simple_bone_cyst`
-5. `giant_cell_tumor`
-6. `osteofibroma`
-7. `synovial_osteochondroma`
-8. `osteosarcoma`
-
-Phân bố:
 
 | Class | Số ảnh |
 |---|---:|
@@ -65,951 +31,321 @@ Phân bố:
 | synovial_osteochondroma | 51 |
 | osteosarcoma | 297 |
 
-## 1.3. Data split
+## 1.3. Split
 
-Dùng một split cố định, stratified theo 8 lớp:
+Split cố định, stratified 8 lớp: **train 2510 / val 538 / test 538**. Mọi experiment dùng cùng split.
 
-- Train: **2510**
-- Validation: **538**
-- Test: **538**
+**Quyết định kiến trúc và hyperparameter dựa trên validation.** Test chỉ dùng để báo cáo.
 
-Tất cả experiment nội bộ phải dùng cùng split này.
+## 1.4. Metric
 
-Test set không được dùng để chọn architecture hoặc hyperparameter.
-
-## 1.4. Chỉ số chính
-
-Metric chính:
-
-\[
-\boxed{\text{Macro-F1}}
-\]
-
-Các metric bổ sung:
-
-- Accuracy
-- Balanced Accuracy
-- Macro Precision
-- Macro Recall
-- Precision / Recall / F1 theo từng class
-- One-vs-Rest AUROC
-- confusion matrix
-
-Với các class có số mẫu nhỏ, per-class F1 phải được diễn giải cùng với support.
+- **Chính:** Macro-F1 (8 lớp).
+- **Phụ:** Accuracy, Balanced Accuracy, Macro Precision/Recall, per-class P/R/F1 (đọc kèm support), OvR AUROC, confusion matrix.
+- **Phân tầng (mới):**
+  - F1 normal ↔ u.
+  - F1 lành ↔ ác, tính trên các ca u.
+  - **Tỉ lệ lỗi nghiêm trọng:** dự đoán sai ở tầng normal/u hoặc tầng lành/ác.
+  - Accuracy theo từng tầng.
 
 ---
 
-# 2. Baseline đã hoàn thành
+# 2. Kết quả đã có (giai đoạn thăm dò, 1 seed, số test)
 
-## B0 — Image-only
+| Run | Mô tả | Acc | Bal. Acc | Macro-F1 | Macro AUROC |
+|---|---|---:|---:|---:|---:|
+| B0 | DenseNet-169, image-only | 74.54 | 60.35 | **61.78** | 90.78 |
+| B1 | + metadata late fusion | 75.09 | 54.78 | 58.49 | 88.02 |
+| B2 | + 65 proposition query, global pooling | 76.77 | 57.44 | 61.33 | 89.65 |
+| B3 | B2 + contrastive trên z_kb | 76.77 | 58.66 | 62.64 | 91.31 |
+| R1-D | class-conditioned decoder + residual logit | — | — | 62.48 (final), 64.04 (image head) | — |
+| S0 | SKELEX image-only | 81.97 | 68.15 | 69.91 | 91.40 |
 
-Backbone:
-
-> DenseNet-169, ImageNet-pretrained
-
-Kết quả test chính:
-
-- Accuracy ≈ **74.54%**
-- Balanced Accuracy ≈ **60.35%**
-- Macro-F1 ≈ **61.78%**
-- Macro AUROC ≈ **90.78%**
-
-B0 là **baseline nội bộ chính**.
-
-## B1 — Image + Metadata
-
-Metadata được dùng:
-
-- age
-- gender
-- coarse anatomical region
-- view
-
-Naive late fusion không cải thiện so với B0.
-
-Kết quả test chính:
-
-- Accuracy ≈ **75.09%**
-- Balanced Accuracy ≈ **54.78%**
-- Macro-F1 ≈ **58.49%**
-- Macro AUROC ≈ **88.02%**
-
-Kết luận:
-
-> Naive metadata fusion không được dùng trong B2/B3 chính.
-
-B1 vẫn được giữ như một auxiliary baseline.
+Ghi chú:
+- Kết quả S0 cho thấy backbone là một nút thắt lớn. SKELEX giữ vai trò baseline mạnh và dùng cho ablation backbone (§8.3), không phải trục chính.
+- Metadata (B1) không giúp, nên không dùng trong model chính.
 
 ---
 
-# 3. Medical Knowledge Base
+# 3. Vì sao bỏ kiến trúc v1 (B2/B3/A1/R1)
 
-## 3.1. Phiên bản KB
+Kiến trúc v1 dùng 65 proposition làm query cross-attention. Có hai biến thể:
+- **B2/B3/A1:** gộp kết quả thành một vector z_kb, nối với z_img, rồi qua một linear.
+- **R1:** prototype lớp làm query để attention lên các proposition thuộc K_c, sau đó cộng residual vào logit ảnh.
 
-Dùng:
+**Chẩn đoán trên checkpoint (val 538 ảnh):**
 
-> **BTXRD 8-class KB v1.0**
+| Chỉ số | Kết quả | Ý nghĩa |
+|---|---|---|
+| Trọng số gộp của B2 (learned pooling) | entropy chuẩn hóa 1,0000; std giữa bệnh nhân 0,00017 | Gộp **đều tuyệt đối**. B2 thực chất bằng mean pooling, nên A1 mất ý nghĩa. |
+| Trọng số class-attention của R1-D | entropy 1,0000; std giữa bệnh nhân 0,00000 | Decoder cũng sụp về trung bình cố định. |
+| cos giữa 65 vector h_ij | 0,50 | Các proposition **không** bị trùng biểu diễn; vấn đề không nằm ở cross-attention. |
+| cos giữa 65 bản đồ cross-attention | 0,87 | Các query nhìn vào vùng ảnh khá giống nhau. |
+| F1 khi chỉ dùng logit knowledge (R1-D) | ~12% | Nhánh knowledge gần như không tự phân biệt được lớp. |
+| R1-D image head → final | val 58,63 → 58,76; test 64,04 → 62,48 | Knowledge gần như không đổi quyết định. |
 
-Các file:
+**Nguyên nhân gốc:**
+- Ở v1, **không query tri thức nào có mục tiêu giám sát riêng**. 65 query bị gộp trước khi phân loại, nên trung bình đã đủ để giảm loss và mô hình không có lý do để chọn lọc.
+- Điểm attention ban đầu chênh rất ít (query và các phép chiếu có thang đo nhỏ), nên mô hình kẹt ở trạng thái đều.
+- Trên SkinCAP (repo `RAD-colab`, nhánh P1), hướng điểm theo từng proposition rồi gộp theo bệnh cũng không hơn RAD gốc. Điểm từng proposition khi không có nhãn ở mức proposition cũng không đúng ngữ nghĩa.
+
+**So với RAD:** mỗi query của RAD gắn với một lớp và ra thẳng logit của lớp đó, nên loss buộc query tìm bằng chứng cho lớp của nó. v1 đã bỏ mất đúng mối nối này.
+
+**Kết luận:**
+1. Tri thức phải đi vào đường ra quyết định qua **query có mục tiêu giám sát riêng**.
+2. Không dựa vào điểm hay attention của từng proposition riêng lẻ, vì không có nhãn ở mức proposition và không dùng nhãn yếu.
+
+Code v1 (B2/B3/A1/R1) giữ trong repo để tái lập. Kết quả v1 được báo cáo như **phân tích thất bại có chẩn đoán**, không phải model chính.
+
+---
+
+# 4. Tri thức y khoa
+
+## 4.1. KB proposition (không đổi)
+
+- **BTXRD 8-class KB v1.0** (`02_kb/`, đã khóa): 68 proposition, có nguồn, mapping proposition → một hoặc nhiều lớp.
+- Model dùng **P001–P065**. P066–P068 là proposition metadata tuổi/giới, bị loại.
+- Text encoder: **MedCPT query encoder, đóng băng**. Embedding t_j ∈ ℝ⁷⁶⁸ được cache offline.
+- Taxonomy limitation giữ như v1:
+  - `osteofibroma` được biểu diễn bằng literature của osteofibrous dysplasia.
+  - `synovial_osteochondroma` được biểu diễn bằng literature của synovial (osteo)chondromatosis.
+
+## 4.2. Cây phân loại (mới)
+
+Nhóm u theo S10 (WHO manual of diagnostic imaging, chương 9.6, đã có trong KB) kết hợp nhãn lành/ác của BTXRD. Nút chỉ có một con được gộp vào con của nó.
 
 ```text
-02_kb/
-├── btxrd_kb_8class.json
-├── propositions_8class.csv
-├── sources_8class.md
-└── kb_8class_report.md
+gốc
+├─ normal                                         [lá]
+└─ u xương
+   ├─ lành tính
+   │   ├─ nhóm tạo sụn (S10 §9.6.2; §9.5)
+   │   │   ├─ osteochondroma                      [lá]
+   │   │   ├─ multiple_osteochondromas            [lá]
+   │   │   └─ synovial_osteochondroma             [lá]
+   │   ├─ osteofibroma   (nhóm xơ, S10 §9.6.3)    [lá, gộp nút một con]
+   │   └─ nhóm chưa rõ nguồn gốc (S10 §9.6.5)
+   │       ├─ simple_bone_cyst                    [lá]
+   │       └─ giant_cell_tumor                    [lá]
+   └─ osteosarcoma   (ác tính, tạo xương, S10 §9.6.6)  [lá, gộp nút một con]
 ```
 
-## 3.2. Quy mô KB
+- 5 nút quyết định: gốc, u xương, lành tính, nhóm tạo sụn, nhóm chưa rõ nguồn gốc.
+- **12 nút con**: 4 nút trong và 8 lá.
+- Cây lưu trong file cấu hình riêng (ví dụ `02_kb/taxonomy_8class.yaml`), mỗi nhóm kèm nguồn. Mỗi nút có thêm một tên ngắn, dùng cho run đối chứng H2-N.
 
-Tổng số proposition:
+## 4.3. Gán proposition vào nút (tất định, không gán tay)
 
-\[
-M=68
-\]
+Mỗi proposition được gán vào **nút thấp nhất bao trùm tất cả các lớp mà nó map tới** (lowest common ancestor). Việc gán do code tính từ mapping đã khóa, không có nhãn mới. Kết quả kiểm tra trên 65 proposition:
 
-Theo `role`:
+| Tầng | Nút | Số proposition |
+|---|---|---:|
+| Chung | u xương | 5 |
+| | lành tính | 3 |
+| | nhóm tạo sụn | 5 |
+| | nhóm chưa rõ nguồn gốc | 3 |
+| Riêng | normal | 12 |
+| | osteosarcoma | 11 |
+| | synovial_osteochondroma | 8 |
+| | simple_bone_cyst | 6 |
+| | multiple_osteochondromas | 4 |
+| | osteofibroma | 4 |
+| | giant_cell_tumor | 3 |
+| | osteochondroma | 1 |
+| | **Tổng** | **65** |
 
-- characteristic: 38
-- shared: 30
+Định nghĩa:
+- `own(n)`: proposition được gán cho chính nút n.
+- `sub(n)`: proposition của n và mọi nút con cháu.
+- Mọi nút trong cây hiện tại đều có `own(n)` khác rỗng. Quy tắc dự phòng khi rỗng là dùng `sub(n)`.
 
-Một proposition có thể được map với nhiều class nếu nguồn y khoa hỗ trợ.
-
-## 3.3. Proposition hình ảnh và proposition metadata
-
-Các proposition dùng trong main visual model:
-
-\[
-P001\text{–}P065
-\]
-
-Do đó:
-
-\[
-M_{visual}=65
-\]
-
-Ba proposition:
-
-- P066 — tuổi trẻ
-- P067 — tuổi 20–50 / skeletal maturity
-- P068 — male
-
-là **metadata propositions**, không phải dấu hiệu nhìn trực tiếp trên X-ray.
-
-Vì vậy:
-
-> **B2/B3 chính chỉ dùng P001–P065.**
-
-P066–P068 vẫn được giữ trong KB nhưng chỉ bật nếu một experiment sau này thực sự đưa metadata vào patient memory.
-
-## 3.4. Vai trò của proposition
-
-Một proposition là:
-
-> **một đơn vị tri thức y khoa fine-grained được dùng làm semantic query.**
-
-Proposition không phải:
-
-- patient-level label
-- PRESENT / ABSENT target
-- concept bottleneck
-- clinical probability
-- symbolic rule
-
-Không có proposition-level supervision.
-
-## 3.5. Các lưu ý về taxonomy
-
-Hai giới hạn cần ghi rõ trong paper:
-
-1. `osteofibroma` được biểu diễn bằng literature của **osteofibrous dysplasia (OFD)** theo quy ước của KB; chưa có xác nhận từ tác giả BTXRD rằng hai nhãn là hoàn toàn tương đương.
-2. `synovial_osteochondroma` được diễn giải theo literature về **synovial (osteo)chondromatosis**.
-
-Đây là limitation của taxonomy dataset/KB, không phải claim của mô hình.
+Proposition **không** bị diễn giải là nhãn hay xác suất xuất hiện. Chúng chỉ là đơn vị tri thức dùng để tạo query và prototype.
 
 ---
 
-# 4. Tổ chức code
+# 5. Kiến trúc
 
-Từ giai đoạn này, toàn bộ logic mô hình không được đặt chủ yếu trong Colab notebook.
+## 5.1. Image encoder (không đổi)
 
-## 4.1. GitHub-first workflow
+- DenseNet-169 ImageNet, input 224, ảnh xám lặp thành 3 kênh.
+- F ∈ 7×7×1664, lấy sau ReLU cuối.
+- Visual token: V = W_v·F_flat ∈ ℝ^(49×d).
+- Global feature: z_img = GAP(F) ∈ ℝ¹⁶⁶⁴, chỉ dùng cho PECL.
+- Không dùng positional embedding.
+- Interface encoder dùng chung (EncoderOutput), để thay được SKELEX cho ablation backbone.
 
-Toàn bộ:
+## 5.2. Knowledge query của nút
 
-- architecture
-- data loading
-- training
-- losses
-- metrics
-- evaluation
-- ablation switches
+q̄_n = Normalize( mean_{j ∈ own(n)} Normalize(t_j) ), sau đó q_n = W_q · q̄_n ∈ ℝ^d. W_q trainable, MedCPT đóng băng.
 
-phải nằm trong GitHub repository.
+- Flat decoder (F1): query lớp c dùng toàn bộ K_c, tức prototype g_c như v1.
+- H2-N (đối chứng): q̄_n là embedding MedCPT của **tên nút**. Prototype PECL của H2-N cũng lấy từ tên nút (§6.2), để H2-N hoàn toàn không dùng nội dung proposition.
 
-Colab chỉ đóng vai trò GPU runner.
+## 5.3. Knowledge decoder
 
-Workflow:
+Transformer decoder theo kiểu RAD:
+- **Query:** các q_n. Flat dùng 8 query; phân tầng dùng 12 query.
+- **Key/Value:** visual token V.
+- **Mỗi layer, pre-norm:** self-attention giữa các query → cross-attention vào V → FFN, có residual + LayerNorm.
+- **Mặc định:** d = 256, 4 layer, 4 head, FFN 1024, dropout 0,1. Khởi tạo Linear/MHA theo normal(0; 0,02) như RAD.
+- **Đầu ra:** mỗi query qua **một Linear(d, 1) dùng chung** → 1 logit cho nút đó. Danh tính nút đến từ query, không đến từ head.
+- **Không có head linear riêng cho ảnh và không có residual logit:** decoder thay hẳn classifier, giống RAD. B0 là baseline "classifier thường".
 
-```text
-GitHub repository
-        ↓
-clone / pull
-        ↓
-pip install -e .
-        ↓
-mount Google Drive
-        ↓
-chọn YAML config
-        ↓
-train / evaluate trên GPU
-```
+## 5.4. Dự đoán phân tầng
 
-## 4.2. Cấu trúc repo đề xuất
-
-```text
-src/btxrd/
-├── data/
-│   ├── dataset.py
-│   └── transforms.py
-│
-├── knowledge/
-│   ├── kb.py
-│   └── text_encoder.py
-│
-├── models/
-│   ├── image_encoder.py
-│   ├── cross_attention.py
-│   ├── aggregation.py
-│   ├── fusion.py
-│   └── model.py
-│
-├── losses/
-│   ├── classification.py
-│   └── contrastive.py
-│
-├── training/
-│   ├── trainer.py
-│   ├── metrics.py
-│   └── checkpoint.py
-│
-└── utils/
-    └── seed.py
-
-configs/
-├── b0_image.yaml
-├── b1_metadata.yaml
-├── b2_knowledge.yaml
-├── b3_contrastive.yaml
-└── ablations/
-    └── a1_mean_aggregation.yaml
-
-scripts/
-├── train.py
-├── evaluate.py
-└── cache_text_embeddings.py
-```
-
-Cùng một codebase phải chạy được toàn bộ experiment thông qua config.
+- Tại mỗi nút quyết định p: P(c | p) = softmax trên logit của các con của p.
+- Xác suất lá: P(lá) = tích P(nút | cha) dọc đường đi từ gốc xuống lá.
+- Dự đoán 8 lớp = argmax P(lá).
+- Xác suất các tầng trên (u/normal, lành/ác, nhóm) cũng được xuất ra.
+- Với decoder phẳng (F1): P(lá) = softmax trên 8 logit.
 
 ---
 
-# 5. Kiến trúc chính
+# 6. Loss
 
-## 5.1. Image encoder
+## 6.1. Loss phân loại
 
-Input:
+- **Phẳng:** weighted CE trên 8 lớp.
+- **Phân tầng:** L_H = −w_y · log P(lá đúng) = −w_y · Σ_{p ∈ đường đi} log P(con đúng | p).
+  - Tương đương CE có giám sát ở **mọi tầng** trên đường đi.
+  - Nhãn mọi tầng suy tất định từ nhãn 8 lớp, **không có nhãn yếu**.
+  - w_y = trọng số sqrt-inverse của lá đúng, giữ như protocol cũ.
 
-\[
-I_i\in\mathbb{R}^{3\times224\times224}
-\]
+## 6.2. PECL — Proposition-Enhanced Contrastive Loss
 
-Ảnh grayscale được lặp thành 3 channels để dùng ImageNet-pretrained DenseNet.
+Đối chiếu với RAD: GECL nhánh ảnh của RAD kéo **đặc trưng ảnh pooled** về prototype cố định, là embedding đoạn mô tả X-quang của guideline. PECL giữ nguyên ý đó, chỉ đổi nguồn prototype:
 
-Backbone:
-
-> **DenseNet-169, ImageNet-pretrained**
-
-Lấy feature map cuối:
-
-\[
-F_i\in\mathbb{R}^{7\times7\times1664}
-\]
-
-sau activation cuối của DenseNet.
-
-Global image feature:
-
-\[
-z_{img,i}
-=
-GAP(F_i)
-\in\mathbb{R}^{1664}
-\]
-
-để giữ tương thích với representation của B0.
-
-## 5.2. Visual tokens
-
-Flatten feature map:
-
-\[
-F_i^{flat}
-\in
-\mathbb{R}^{49\times1664}
-\]
-
-sau đó chiếu về 256 chiều:
-
-\[
-V_i
-=
-W_vF_i^{flat}
-\in
-\mathbb{R}^{49\times256}
-\]
-
-Có thể triển khai bằng Linear layer hoặc \(1\times1\) convolution.
-
-### Positional embedding
-
-Cấu hình chính:
-
-```text
-use_positional_embedding = false
-```
-
-Không dùng learned 2D positional embedding trong main model.
-
-Lý do:
-
-- DenseNet feature đã giữ local spatial context;
-- absolute position trên X-ray thay đổi theo anatomy, view và crop;
-- attention map vẫn có thể reshape về grid \(7\times7\) để visualization.
-
-Nếu sau này thật sự cần, có thể hỗ trợ fixed 2D sine/cosine encoding qua config switch, nhưng đây không phải core ablation.
+- u = Normalize(φ(z_img)), với φ: D_global → 768. D_global lấy từ interface encoder (`global_dim`): DenseNet 1664, SKELEX `hidden_size`. Không hard-code.
+- Prototype nút: P_n = Normalize( mean_{j ∈ sub(n)} Normalize(t_j) ). Cố định, không có gradient.
+- Riêng H2-N: P_n = Normalize(embedding MedCPT của tên nút).
+- **Phẳng:** softmax CE của cos(u, P_c)/τ trên 8 lá.
+- **Phân tầng:** tại mỗi nút quyết định p trên đường đi, softmax CE trên cos(u, P_con)/τ giữa các con của p, rồi lấy tổng. Đây là dạng single-label tương ứng với SupCon multi-positive của RAD; trường hợp phẳng chỉ là cây một tầng.
+- Mặc định: λ = 0,1 (giống β của RAD), τ = 0,07.
+- Tổng loss: L = L_cls + λ · L_PECL.
 
 ---
 
-# 6. Frozen proposition embeddings
+# 7. Training protocol (không đổi)
 
-## 6.1. Text encoder
-
-Dùng một biomedical sentence encoder đã đóng băng.
-
-Mặc định:
-
-> **MedCPT query encoder**
-
-Lý do:
-
-- proposition là các biomedical sentence ngắn;
-- MedCPT được huấn luyện contrastively cho biomedical semantic representation;
-- cùng text space sẽ được dùng cho semantic query và class prototype.
-
-Không thêm text-encoder comparison vào core experiment.
-
-## 6.2. Cache offline
-
-Với proposition \(p_j\):
-
-\[
-t_j
-=
-E_T(p_j)
-\in
-\mathbb{R}^{768}
-\]
-
-Text encoder được freeze hoàn toàn.
-
-Tất cả \(t_j\) được tính offline và cache trước training.
-
-Không backpropagate vào text encoder.
-
-## 6.3. Query projection
-
-Với 65 visual propositions:
-
-\[
-q_j
-=
-W_q t_j
-\in
-\mathbb{R}^{256}
-\]
-
-Trong đó \(W_q\) là trainable projection.
-
-Lưu ý khi implementation:
-
-> Không tự tạo hai lớp query projection dư thừa.
-
-Nếu dùng PyTorch `MultiheadAttention`, \(W_q\) chỉ có nhiệm vụ map text embedding 768→256; các Q/K/V projection bên trong attention module sẽ được xử lý nội bộ.
+- 224×224. RandomAffine(7, (0.03, 0.03), (0.95, 1.05)) chỉ áp khi train.
+- Sqrt-inverse weighted loss. Không dùng sampler, không oversampling.
+- Adam, lr 1e-4, wd 1e-4. StepLR(25, 0,1). 100 epoch. Batch 32. AMP. Seed 2026.
+- Checkpoint chọn theo **val Macro-F1 8 lớp**.
+- SKELEX (ablation backbone) dùng recipe riêng của S0, đã có trong package.
 
 ---
 
-# 7. Proposition-guided cross-attention
+# 8. Thí nghiệm
 
-Tập query:
+## 8.1. Core runs (DenseNet-169)
 
-\[
-Q
-=
-[q_1,\ldots,q_{65}]
-\in
-\mathbb{R}^{65\times256}
-\]
+| Run | Decoder | Query | PECL | Mục đích |
+|---|---|---|---|---|
+| **B0** | — (linear) | — | — | Baseline image-only (đã có) |
+| **F1** | phẳng, 8 query | tri thức lớp (K_c) | **tắt** | Query tri thức có giám sát có giúp không |
+| **H1** | phân tầng, 12 query | tri thức nút (own) | **tắt** | Decode phân tầng có giúp không |
+| **H2** | phân tầng, 12 query | tri thức nút (own) | phân tầng, prototype proposition | **Model đề xuất đầy đủ** |
+| **H2-N** | phân tầng, 12 query | **tên nút** | phân tầng, prototype **tên nút** | Đối chứng: nội dung proposition có giúp không |
 
-Với ca bệnh \(i\):
+## 8.2. Các phép so
 
-- query = proposition embeddings \(Q\)
-- key = visual tokens \(V_i\)
-- value = visual tokens \(V_i\)
+Mỗi bước chỉ đổi đúng một thành phần:
 
-Cross-attention:
+- **F1 vs B0:** decoder với query tri thức có giám sát, so với classifier thường.
+- **H1 vs F1:** cấu trúc phân tầng từ chung tới riêng.
+- **H2 vs H1:** PECL phân tầng.
+- **H2 vs H2-N:** nội dung proposition, so với chỉ dùng tên nút. Cả hai cùng cây phân loại, nên phép so này đo nội dung proposition chứ không đo cấu trúc cây. **Báo cáo trung thực kết quả, dù tốt hay xấu.**
 
-\[
-H_i
-=
-CrossAttn(Q,V_i,V_i)
-\in
-\mathbb{R}^{65\times256}
-\]
+Theo dõi riêng: lá osteochondroma chỉ có 1 proposition trong own(n). Nếu query lá này yếu thì ghi nhận là limitation, không sửa KB trước khi chạy.
 
-Với mỗi proposition:
+## 8.3. Sau core runs
 
-\[
-h_{ij}\in\mathbb{R}^{256}
-\]
-
-được hiểu là:
-
-> **patient representation conditioned on proposition \(p_j\)**
-
-Không được diễn giải \(h_{ij}\) thành:
-
-- xác suất proposition xuất hiện;
-- proposition verification;
-- clinical evidence score.
-
-Các hyperparameter mặc định có thể cấu hình:
-
-```text
-knowledge_dim = 256
-num_heads = 4
-attention_dropout = 0.1
-```
-
-Đây chỉ là implementation defaults, không phải research claims.
+- **Ablation backbone:** H2 với SKELEX, so với S0. Chỉ đổi backbone.
+- **Không làm nếu chưa có lý do thực nghiệm:**
+  - query từng proposition hoặc điểm từng proposition;
+  - nhãn yếu;
+  - grid lớn cho λ/τ;
+  - so sánh nhiều text encoder;
+  - fine-tune MedCPT;
+  - metadata;
+  - multi-scale;
+  - lesion supervision;
+  - sửa KB.
+- Seed bổ sung và CV: để giai đoạn chạy chính thức.
 
 ---
 
-# 8. Tổng hợp proposition
+# 9. XAI
 
-## 8.1. Cấu hình chính — learned attention pooling
-
-Với mỗi proposition-conditioned feature:
-
-\[
-e_{ij}
-=
-w^T\tanh(W_hh_{ij})
-\]
-
-sau đó:
-
-\[
-\alpha_{ij}
-=
-softmax_j(e_{ij})
-\]
-
-Knowledge representation:
-
-\[
-z_{kb,i}
-=
-\sum_{j=1}^{65}
-\alpha_{ij}h_{ij}
-\in
-\mathbb{R}^{256}
-\]
-
-\(\alpha_{ij}\) là learned aggregation weight.
-
-Không diễn giải chúng như clinical probability.
-
-## 8.2. A1 — mean aggregation
-
-A1 thay learned pooling bằng:
-
-\[
-z_{kb,i}
-=
-\frac{1}{65}
-\sum_{j=1}^{65}
-h_{ij}
-\]
-
-Các thành phần khác giữ nguyên.
-
-A1 trả lời câu hỏi:
-
-> Learned aggregation có mang lại lợi ích so với mean pooling đơn giản hay không?
+- **Grad-CAM:** B0 vs H2.
+- **Lesion grounding** trên ảnh u có annotation BTXRD: Pointing Game và Energy Inside Lesion. Normal không tính.
+- **Cross-attention** của query nút "u xương" và các nút lá: chỉ là visualization bổ sung, cho biết query đang tập trung vào đâu. Các query này có giám sát thật ở tầng của nó, nhưng vẫn **không claim** nhân quả.
+- **Đường suy luận** từ gốc xuống lá kèm xác suất từng tầng: trình bày như output phân tầng của mô hình.
 
 ---
 
-# 9. Classification fusion
+# 10. Phạm vi claim
 
-Knowledge branch bổ sung cho image branch.
+**Được claim, nếu thực nghiệm hỗ trợ:**
+- Tri thức X-quang được tổ chức thành proposition có nguồn, sắp theo cây từ chung tới riêng; việc gán vào cây là tất định từ mapping KB.
+- Tri thức nút được dùng làm query có giám sát trong decoder phân tầng.
+- Decode phân tầng hoặc PECL cải thiện Macro-F1 hoặc giảm lỗi nghiêm trọng so với baseline.
+- Nội dung tri thức giúp hơn tên nút, **chỉ khi H2 > H2-N**.
+- Mô hình tập trung vào vùng tổn thương tốt hơn, nếu metric grounding hỗ trợ.
 
-Không dùng proposition bottleneck.
-
-Representation cuối:
-
-\[
-z_i
-=
-[z_{img,i};z_{kb,i}]
-\]
-
-sau đó:
-
-\[
-z_i
-\rightarrow
-Linear
-\rightarrow
-\ell_i\in\mathbb{R}^{8}
-\]
-
-Classifier head là **một Linear layer trực tiếp ra 8 logits**, cùng dạng với B0 (\(z_{img}\rightarrow Linear\rightarrow 8\)) và B1 (\([z_{img};z_{meta}]\rightarrow Linear\rightarrow 8\)).
-
-B0, B1, B2, B3 và A1 đều dùng linear head. Không dùng MLP classifier, để B0 → B2 chỉ khác ở nhánh knowledge và gain không thể quy cho classifier phức tạp hơn.
-
-Tính phi tuyến của nhánh knowledge đến từ softmax trong cross-attention và \(\tanh\) trong learned aggregation; các projection \(W_v\), \(W_q\) là tuyến tính.
+**Không claim:**
+- Proposition xuất hiện hay không, hoặc điểm của từng proposition.
+- Mô hình là concept bottleneck.
+- Attention là giải thích nhân quả.
+- Mô hình suy luận giống bác sĩ.
+- Giá trị lâm sàng ngoài phạm vi dataset.
 
 ---
 
-# 10. Knowledge-guided Contrastive Learning
-
-## 10.1. Fixed class prototypes
-
-Class prototype được giữ trong **frozen biomedical text space**.
-
-Với class \(c\), gọi \(K_c\) là tập proposition được map với class đó trong KB.
-
-Chuẩn hóa từng frozen text embedding:
-
-\[
-\bar t_j
-=
-\frac{t_j}{\|t_j\|}
-\]
-
-Sau đó:
-
-\[
-g_c
-=
-Normalize
-\left(
-\frac{1}{|K_c|}
-\sum_{j\in K_c}
-\bar t_j
-\right)
-\in
-\mathbb{R}^{768}
-\]
-
-Prototype được cố định và không nhận gradient.
-
-Shared propositions có thể xuất hiện trong nhiều class prototype theo mapping của KB.
-
-## 10.2. Patient projection
-
-Contrastive alignment áp dụng trên **knowledge-derived patient representation**:
-
-\[
-u_i
-=
-\phi(z_{kb,i})
-\in
-\mathbb{R}^{768}
-\]
-
-sau đó normalize:
-
-\[
-\bar u_i
-=
-\frac{u_i}{\|u_i\|}
-\]
-
-Cách này giúp auxiliary contrastive objective tác động trực tiếp lên nhánh knowledge.
-
-## 10.3. Contrastive loss
-
-\[
-\mathcal{L}_{con}^{(i)}
-=
--\log
-\frac{
-\exp(
-\cos(\bar u_i,g_{y_i})/\tau
-)
-}{
-\sum_{c\in\mathcal Y}
-\exp(
-\cos(\bar u_i,g_c)/\tau
-)
-}
-\]
-
-Total loss:
-
-\[
-\boxed{
-\mathcal L
-=
-\mathcal L_{CE}
-+
-\lambda\mathcal L_{con}
-}
-\]
-
-B2:
-
-\[
-\lambda=0
-\]
-
-B3:
-
-\[
-\lambda>0
-\]
-
-Không dùng proposition-level contrastive loss.
-
----
-
-# 11. Metadata
-
-Metadata **không thuộc main B2/B3 configuration** vì B1 không cải thiện B0.
-
-Codebase vẫn nên hỗ trợ:
-
-```text
-use_metadata = true | false
-```
-
-Nếu một experiment sau này bật metadata, chỉ được dùng:
-
-- age
-- gender
-- coarse region
-- view
-
-Khi đó P066–P068 mới có thể được bật.
-
-Metadata experiment là optional, không phải core experiment nếu chưa có kết quả thực nghiệm hỗ trợ.
-
----
-
-# 12. Training protocol
-
-Giữ protocol tương thích với B0.
-
-## 12.1. Image preprocessing
-
-Input size:
-
-\[
-224\times224
-\]
-
-Train-only augmentation:
-
-```text
-RandomAffine(
-    degrees = 7,
-    translate = (0.03, 0.03),
-    scale = (0.95, 1.05)
-)
-```
-
-Validation/test:
-
-- không augmentation
-- deterministic
-
-## 12.2. Class imbalance
-
-Dùng sqrt-inverse-frequency weighted Cross-Entropy đã tính từ training split.
-
-Không dùng:
-
-- weighted sampler
-- oversampling
-
-## 12.3. Optimizer
-
-```text
-Adam
-lr = 1e-4
-weight_decay = 1e-4
-```
-
-## 12.4. Learning-rate schedule
-
-```text
-max_epochs = 100
-StepLR(step_size=25, gamma=0.1)
-```
-
-Checkpoint được chọn theo:
-
-\[
-\boxed{\text{Validation Macro-F1}}
-\]
-
-Có thể dùng early stopping chỉ để tiết kiệm compute.
-
-Patience mặc định:
-
-```text
-15 epochs
-```
-
----
-
-# 13. Core experiments và ablation
-
-Giữ số experiment vừa đủ.
-
-| Run | Image | Metadata | Proposition knowledge | Aggregation | Contrastive | Mục đích |
-|---|:---:|:---:|:---:|:---:|:---:|---|
-| B0 | ✓ | – | – | – | – | Image-only baseline |
-| B1 | ✓ | ✓ | – | – | – | Metadata baseline, đã hoàn thành |
-| B2 | ✓ | – | ✓ | learned | – | Đo đóng góp của knowledge |
-| B3 | ✓ | – | ✓ | learned | ✓ | Đo đóng góp thêm của Contrastive Learning |
-| A1 | ✓ | – | ✓ | mean | – | Ablation cho aggregation |
-
-## 13.1. B2
-
-Main knowledge model:
-
-\[
-\mathcal L=\mathcal L_{CE}
-\]
-
-Câu hỏi:
-
-> Proposition-guided medical knowledge có cải thiện 8-class classification so với B0 hay không?
-
-## 13.2. B3
-
-Giữ nguyên B2 và thêm:
-
-\[
-\lambda\mathcal L_{con}
-\]
-
-Câu hỏi:
-
-> Class-level knowledge alignment có bổ sung lợi ích ngoài B2 hay không?
-
-## 13.3. A1
-
-Giữ nguyên B2 nhưng dùng mean aggregation.
-
-Câu hỏi:
-
-> Learned proposition aggregation có tốt hơn uniform averaging hay không?
-
-## 13.4. Không phải core experiments
-
-Không thêm nếu chưa có lý do thực nghiệm rõ ràng:
-
-- matched / irrelevant knowledge control
-- random propositions
-- shuffled propositions
-- random vectors
-- learned free queries
-- multiple text encoder comparison
-- fine-tuned vs frozen text encoder
-- shared-only vs characteristic-only
-- positional-embedding ablation
-- hyperparameter grid lớn
-
----
-
-# 14. XAI và lesion grounding
-
-## 14.1. XAI chính
-
-Dùng:
-
-> **Grad-CAM**
-
-So sánh tối thiểu:
-
-- B0 image-only
-- final proposed model
-
-## 14.2. Ground truth
-
-Dùng lesion annotations của BTXRD trên các tumour images.
-
-Normal không có lesion target nên không đưa vào lesion-grounding metrics.
-
-## 14.3. Quantitative grounding
-
-### Pointing Game
-
-\[
-PG
-=
-\frac{
-\#\text{cases có peak activation nằm trong lesion}
-}{
-\#\text{annotated tumour cases}
-}
-\]
-
-### Energy Inside Lesion
-
-\[
-E_{lesion}
-=
-\frac{
-\sum_{(x,y)\in R}H(x,y)
-}{
-\sum_{x,y}H(x,y)
-}
-\]
-
-## 14.4. Cross-attention visualization
-
-Attention map từ proposition-guided cross-attention có thể dùng làm supplementary visualization.
-
-Chỉ diễn giải là:
-
-> nơi semantic query đang tập trung.
-
-Không dùng attention map để claim:
-
-- causal explanation
-- proposition presence
-- proposition-level diagnosis
-
-SHAP là optional.
-
----
-
-# 15. Phạm vi claim
-
-Nếu experiment hỗ trợ, có thể claim:
-
-- medical knowledge được tổ chức thành các radiographic propositions fine-grained;
-- propositions được tích hợp như semantic queries vào image representation learning;
-- proposition-guided interaction cải thiện hoặc hỗ trợ fine-grained 8-class classification;
-- class-level contrastive alignment giúp representation nếu B3 tốt hơn B2;
-- final model tập trung tốt hơn vào lesion region nếu annotation-based grounding metrics hỗ trợ.
-
-Không claim:
-
-- proposition weight là clinical probability;
-- model dự đoán proposition có xuất hiện hay không;
-- model là concept bottleneck;
-- attention là causal explanation;
-- model reasoning giống radiologist;
-- clinical validity ngoài phạm vi dataset và experiment.
-
----
-
-# 16. Các quyết định đã khóa
+# 11. Các quyết định đã khóa
 
 | Thành phần | Quyết định |
 |---|---|
-| Dataset | BTXRD |
-| Task chính | 8-class classification |
-| Số ảnh sử dụng | 3,586 |
-| Classes | Normal + 7 tumour classes cụ thể |
-| Class bị loại | other bt, other mt |
-| Split | fixed stratified 2510 / 538 / 538 |
-| Metric chính | Macro-F1 |
-| Image backbone | DenseNet-169, ImageNet-pretrained |
-| Input ảnh | 224×224 |
-| KB | 8-class KB v1.0 |
-| Tổng proposition | 68 |
-| Main visual queries | P001–P065 |
-| Metadata propositions | P066–P068, tắt trong B2/B3 chính |
-| Text encoder | frozen MedCPT query encoder |
-| Text embeddings | cache offline |
-| Knowledge dimension | 256 |
-| Knowledge interaction | proposition-guided cross-attention |
-| Main aggregation | learned attention pooling |
-| Aggregation ablation | mean pooling |
-| Classification fusion | global image feature + knowledge feature |
-| Classifier head | Linear → 8 logits, giống B0 (B0/B1/B2/B3/A1) |
-| Main loss | sqrt-inverse weighted Cross-Entropy |
-| Auxiliary loss | class-level knowledge contrastive loss |
-| Contrastive prototype | fixed prototype trong frozen text space |
-| Contrastive patient feature | projected \(z_{kb}\) |
-| Metadata trong B2/B3 chính | Không |
-| Main XAI | Grad-CAM |
-| Grounding metrics | Pointing Game + Energy Inside Lesion |
-| Core runs | B0, B1, B2, B3, A1 |
-| Matched control | Không bắt buộc |
-| Weak labels | Không |
-| Proposition supervision | Không |
-| Proposition bottleneck | Không |
+| Dataset / task | BTXRD, 8 lớp, 3.586 ảnh, split 2510/538/538 |
+| Metric chính | Macro-F1 8 lớp (chọn checkpoint trên val) |
+| Backbone chính | DenseNet-169 ImageNet, 224 |
+| KB | 8-class KB v1.0, P001–P065, MedCPT query encoder đóng băng |
+| Cây phân loại | §4.2, nguồn S10 chương 9.6 + nhãn lành/ác của BTXRD |
+| Gán proposition | Lowest common ancestor, tất định |
+| Query nút | Trung bình embedding đã normalize của own(n), sau đó W_q |
+| Decoder | Pre-norm transformer decoder: d 256, 4 layer, 4 head, FFN 1024 |
+| Head | Linear(d, 1) dùng chung cho mọi query; không có head ảnh, không residual |
+| Dự đoán | Softmax phân tầng, xác suất lá = tích dọc đường đi |
+| Loss | L_cls (weighted, phẳng hoặc phân tầng) + 0,1 · PECL |
+| PECL | φ(z_img): D_global → 768; prototype sub(n) cố định (H2-N: tên nút); τ 0,07; tắt ở F1 và H1 |
+| Core runs | B0, F1, H1, H2, H2-N |
+| Nhãn yếu / giám sát proposition | Không |
+| Metadata trong model chính | Không |
+| SKELEX | Baseline S0 và ablation backbone, sau core runs |
 
 ---
 
-# 17. Câu chuyện paper tối giản
+# 12. Câu chuyện paper
 
-1. **Bài toán:** Fine-grained classification giữa normal bone và 7 nhóm bone tumour trên radiograph là khó, đặc biệt với class imbalance và morphology overlap.
-2. **Biểu diễn tri thức:** Tri thức X-quang được tổ chức thành các fine-grained radiographic propositions có provenance và class mapping.
-3. **Phương pháp:** Frozen proposition embeddings đóng vai trò semantic queries để tương tác với DenseNet visual tokens bằng cross-attention.
-4. **Aggregation:** Các proposition-conditioned patient features được tổng hợp thành knowledge representation và fusion với global image feature.
-5. **Learning:** Weighted Cross-Entropy thực hiện classification; class-level Contrastive Learning là auxiliary objective tùy chọn.
-6. **Đánh giá:** So sánh B0, B1, B2, B3 và A1; đánh giá classification và lesion grounding dựa trên annotation.
-7. **Giới hạn:** Không weak label, không proposition presence prediction, không concept bottleneck, không mở rộng quá nhiều control/ablation.
+1. Phân loại 8 lớp u xương trên X-quang là bài toán khó: lớp mất cân bằng, hình thái chồng lấn.
+2. Tri thức X-quang được tổ chức thành proposition có nguồn, sắp trên cây phân loại từ chung (u xương, lành tính, nhóm mô) tới riêng (từng loại u).
+3. Tri thức của mỗi nút làm query cho transformer decoder trên visual token. Mỗi query ra logit của nút đó, được giám sát bằng nhãn tầng suy ra tất định từ nhãn lớp.
+4. Dự đoán bằng softmax phân tầng. PECL phân tầng kéo đặc trưng ảnh về prototype tri thức của các nút trên đường đi.
+5. Đánh giá: Macro-F1, lỗi nghiêm trọng, lesion grounding. Đối chứng với query tên nút. Ablation backbone với SKELEX.
+6. Phân tích thất bại của kiến trúc gộp proposition (v1) có chẩn đoán định lượng, làm động cơ cho thiết kế mới.
 
 ---
 
-# 18. Nguyên tắc implementation cuối cùng
+# 13. Nguyên tắc implementation
 
-Research code phải theo hướng **config-driven**.
-
-Các module phải bật/tắt được mà không copy model code.
-
-Ví dụ:
-
-```yaml
-model:
-  use_knowledge: true
-  use_metadata: false
-  use_contrastive: false
-  aggregation: learned
-  use_positional_embedding: false
-
-knowledge:
-  exclude_ids:
-    - P066
-    - P067
-    - P068
-  text_encoder_frozen: true
-
-loss:
-  contrastive_weight: 0.0
-```
-
-B2/B3/A1 chỉ khác nhau bằng config.
-
-Colab notebook chỉ là execution wrapper, không chứa logic kiến trúc chính.
+- Giữ toàn bộ package hiện có: data, recipe, encoder interface, KB loader, MedCPT cache, trainer, predict, resume.
+- **Thêm:**
+  - file cây phân loại;
+  - module gán proposition theo lowest common ancestor;
+  - knowledge decoder (phẳng hoặc phân tầng dùng chung một code, khác nhau ở cây);
+  - loss phân tầng;
+  - PECL trên z_img;
+  - cache MedCPT cho tên nút (dùng cho H2-N).
+- Config-driven: F1, H1, H2, H2-N chỉ khác nhau ở config.
+- Code v1 (B2/B3/A1/R1) giữ nguyên để tái lập, không phát triển thêm.
+- Lưu logit từng nút và xác suất từng tầng khi predict. Ghi metric phân tầng trên val mỗi epoch.
+- Notebook Colab chỉ là runner.
