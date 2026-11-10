@@ -1,5 +1,4 @@
 base: base.yaml
-run: {name: b1_metadata}
 model: {use_metadata: true}
 train:
   early_stopping: {enabled: true, patience: 15}

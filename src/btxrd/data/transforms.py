@@ -16,9 +16,11 @@ def load_skelex_rgb(image):
     return Image.fromarray(np.clip(array, 0, 255).astype(np.uint8)).convert('RGB')
 
 def _skelex_transform(data_cfg, training):
-    items = [transforms.Lambda(load_skelex_rgb), transforms.Resize((224, 224))]
+    size = data_cfg['input_size']
+    aug = data_cfg['augmentation']
+    items = [transforms.Lambda(load_skelex_rgb), transforms.Resize((size, size))]
     if training:
-        items.append(transforms.RandomAffine(7, (0.03, 0.03), (0.95, 1.05)))
+        items.append(transforms.RandomAffine(aug['degrees'], tuple(aug['translate']), tuple(aug['scale'])))
     return transforms.Compose(items + [transforms.ToTensor(), transforms.Normalize(IMAGENET_MEAN, IMAGENET_STD)])
 
 

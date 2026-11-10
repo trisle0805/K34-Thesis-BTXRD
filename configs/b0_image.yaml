@@ -1,2 +1,1 @@
 base: base.yaml
-run: {name: b0_image}

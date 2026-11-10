@@ -42,7 +42,12 @@ class SKELEXEncoder(nn.Module):
         if saved:
             self.vit = ViTModel(ViTConfig(**saved), add_pooling_layer=False)
         elif pretrained:
-            self.vit = ViTModel.from_pretrained(cfg.model.skelex.model_name, add_pooling_layer=False)
+            self.vit, loading_info = ViTModel.from_pretrained(
+                cfg.model.skelex.model_name, add_pooling_layer=False, output_loading_info=True)
+            missing = [key for key in loading_info['missing_keys']
+                       if key.startswith(('embeddings.', 'encoder.', 'layers.', 'layernorm.'))]
+            if missing:
+                raise ValueError(f'SKELEX checkpoint missing core weights: {missing}')
         else:
             self.vit = ViTModel(ViTConfig(**dict(cfg.model.skelex.test_config)), add_pooling_layer=False)
         self.token_dim = self.global_dim = self.vit.config.hidden_size

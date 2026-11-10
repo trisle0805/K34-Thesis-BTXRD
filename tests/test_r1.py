@@ -74,6 +74,17 @@ def test_tiny_vit_and_llrd(config_overrides):
     assert torch.equal(encoded.visual_tokens, hidden[:, 1:])
     optimizer = build_optimizer(model, cfg)
     parameters = [p for group in optimizer.param_groups for p in group['params']]
+    assignments = {id(p): group for group in optimizer.param_groups for p in group['params']}
+    block_lrs = {}
+    for name, parameter in model.named_parameters():
+        if name.startswith('image_encoder.vit.'):
+            import re
+            match = re.search(r'(?:encoder\.layer|layers)\.(\d+)\.', name)
+            expected = int(match.group(1)) + 1 if match else (0 if '.embeddings.' in name else 3)
+            assert assignments[id(parameter)]['layer_id'] == expected, name
+            block_lrs[expected] = assignments[id(parameter)]['lr']
+    assert set(block_lrs) == {0, 1, 2, 3}
+    assert len(set(block_lrs.values())) == 4
     assert len(parameters) == len(set(map(id, parameters))) == len(list(model.parameters()))
     for group in optimizer.param_groups:
         assert group['lr'] == pytest.approx(cfg.train.lr * 0.75 ** (4 - group['layer_id']))
@@ -94,6 +105,55 @@ def test_skelex_minmax():
     actual = np.asarray(load_skelex_rgb(Image.fromarray(ramp)))
     expected = np.clip((ramp.astype(np.float32) - 10) / 10 * 255, 0, 255).astype(np.uint8)
     assert np.array_equal(actual[:, :, 0], expected)
+
+def test_leaf_names_and_recipe_overrides(config_overrides):
+    paths = sorted(Path('configs').rglob('*.yaml'))
+    paths = [path for path in paths if path.name != 'base.yaml']
+    names = []
+    for path in paths:
+        overrides = config_overrides(**{'run.name': None})
+        cfg = load_config(path, overrides)
+        assert cfg.run.name == path.stem
+        names.append(cfg.run.name)
+        assert load_config(path, config_overrides(run_name='notebook')).run.name == 'notebook'
+    assert len(set(names)) == 8
+    cfg = load_config('configs/r1_skelex_class_decoder.yaml', config_overrides(**{
+        'train.early_stopping.enabled': True, 'train.lr': 0.002,
+        'train.warmup_epochs': 3, 'recipes.skelex.train.epochs': 17}))
+    assert cfg.train.early_stopping.enabled is True
+    assert cfg.train.lr == 0.002 and cfg.train.warmup_epochs == 3
+    assert cfg.train.epochs == 17
+
+def test_skelex_configured_transforms():
+    from btxrd.data.transforms import build_train_transform, build_eval_transform
+    data = {'preprocessing': 'skelex_minmax_rgb', 'input_size': 48,
+            'augmentation': {'degrees': 12, 'translate': [0.1, 0.2], 'scale': [0.8, 1.2]}}
+    transform = build_train_transform(data)
+    assert transform.transforms[1].size == (48, 48)
+    affine = transform.transforms[2]
+    assert affine.degrees == [-12.0, 12.0]
+    assert affine.translate == (0.1, 0.2) and affine.scale == (0.8, 1.2)
+    assert build_eval_transform(data)(Image.new('L', (10, 10))).shape == (3, 48, 48)
+
+def test_missing_pretrained_core_weights(config_overrides, monkeypatch):
+    from transformers import ViTModel
+    cfg = load_config('configs/s0_skelex_image.yaml', config_overrides())
+    tiny = SKELEXEncoder(cfg, pretrained=False).vit
+    def fake_load(*args, **kwargs):
+        assert kwargs == {'add_pooling_layer': False, 'output_loading_info': True}
+        return tiny, {'missing_keys': ['embeddings.cls_token', 'layers.0.weight']}
+    monkeypatch.setattr(ViTModel, 'from_pretrained', fake_load)
+    with pytest.raises(ValueError, match='embeddings.cls_token.*layers.0.weight'):
+        SKELEXEncoder(cfg, pretrained=True)
+
+def test_llrd_incomplete_backbone_rejected(config_overrides):
+    cfg = load_config('configs/s0_skelex_image.yaml', config_overrides())
+    model = BTXRDModel(cfg, pretrained=False)
+    for name, parameter in model.named_parameters():
+        if 'layers.0.' in name or 'encoder.layer.0.' in name:
+            parameter.requires_grad_(False)
+    with pytest.raises(ValueError, match='Invalid ViT LLRD layer ids'):
+        build_optimizer(model, cfg)
 
 
 @pytest.mark.parametrize('changes', [

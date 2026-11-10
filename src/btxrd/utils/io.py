@@ -49,7 +49,13 @@ def git_commit(root: str | Path | None = None) -> str | None:
 
 
 def environment_info() -> dict[str, Any]:
+    from importlib.metadata import PackageNotFoundError, version
+    try:
+        transformers_version = version('transformers')
+    except PackageNotFoundError:
+        transformers_version = None
     return {
+        "transformers": transformers_version,
         "python": sys.version.split()[0],
         "platform": platform.platform(),
         "torch": torch.__version__,

@@ -78,17 +78,27 @@ loss:
   contrastive_weight: 0.0
   contrastive_temperature: 0.07
 
+recipes:
+  backbones: {densenet169: densenet, skelex: skelex}
+  densenet:
+    train: {epochs: 100, lr: 0.0001, weight_decay: 0.0001, grad_accum: 1, clip_grad_norm: null, warmup_epochs: 5, layer_decay: 0.75, step_size: 25, gamma: 0.1, betas: [0.9, 0.999]}
+    data: {batch_size: 32, preprocessing: imagenet_gray3}
+  skelex:
+    train: {epochs: 50, lr: 0.00005, weight_decay: 0.05, grad_accum: 2, clip_grad_norm: 1.0, warmup_epochs: 5, layer_decay: 0.75, step_size: 25, gamma: 0.1, betas: [0.9, 0.999]}
+    data: {batch_size: 16, preprocessing: skelex_minmax_rgb}
+
 train:
   recipe: auto
+  betas: auto
   grad_accum: auto
   clip_grad_norm: auto
-  warmup_epochs: 5
-  layer_decay: 0.75
+  warmup_epochs: auto
+  layer_decay: auto
   epochs: auto
   lr: auto
   weight_decay: auto
-  step_size: 25
-  gamma: 0.1
+  step_size: auto
+  gamma: auto
   amp: true
   early_stopping: {enabled: false, patience: 15}
   resume: false

@@ -66,8 +66,9 @@ def migrate_config(data: dict[str, Any]) -> dict[str, Any]:
                         'intermediate_size': 64, 'patch_size': 16, 'image_size': 224}})
     result['knowledge'].setdefault('decoder', {'num_heads': 1, 'scorer': 'shared', 'beta_init': 0.1})
     result['data'].setdefault('preprocessing', 'imagenet_gray3')
-    defaults = {'recipe': 'densenet', 'grad_accum': 1, 'clip_grad_norm': None,
-                'warmup_epochs': 5, 'layer_decay': 0.75}
+    recipes = _read_with_bases(Path(__file__).resolve().parents[2] / 'configs' / 'base.yaml')['recipes']
+    recipe_name = recipes['backbones'][model['backbone']]
+    defaults = {'recipe': recipe_name, **recipes[recipe_name]['train']}
     for key, value in defaults.items():
         result['train'].setdefault(key, value)
     return result
@@ -247,24 +248,14 @@ def load_config(
     schema = _read_with_bases(root)
 
     _apply_overrides(data, overrides)
-    skelex = data['model']['backbone'] == 'skelex'
     if data['train'].get('recipe') == 'auto':
-        data['train']['recipe'] = 'skelex' if skelex else 'densenet'
-        if skelex:
-            data['train']['early_stopping']['enabled'] = False
-    defaults = {'train.epochs': 50 if skelex else 100, 'train.lr': 5e-5 if skelex else 1e-4,
-                'train.weight_decay': 0.05 if skelex else 1e-4, 'data.batch_size': 16 if skelex else 32}
-    for key, value in defaults.items():
-        section, field = key.split('.')
-        if data[section][field] == 'auto':
-            data[section][field] = value
-    for key, value in [('grad_accum', 2 if skelex else 1), ('clip_grad_norm', 1.0 if skelex else None)]:
-        if data['train'].get(key) == 'auto':
-            data['train'][key] = value
-    if data['data'].get('preprocessing') == 'auto':
-        data['data']['preprocessing'] = ('skelex_minmax_rgb' if data['model']['backbone'] == 'skelex' else 'imagenet_gray3')
+        data['train']['recipe'] = data['recipes']['backbones'][data['model']['backbone']]
+    recipe = data['recipes'][data['train']['recipe']]
+    for section in ('train', 'data'):
+        for field, value in recipe[section].items():
+            if data[section].get(field) == 'auto':
+                data[section][field] = deepcopy(value)
     if data["run"]["name"] is None:
-        data["run"]["name"] = (f"r1_{data['model']['backbone']}_class_decoder"
-                               if data['model']['knowledge_decoder'] == 'class_conditioned' else path.stem)
+        data["run"]["name"] = path.stem
     validate_config(data, schema, require_training_assets=require_training_assets)
     return Config(data, path)

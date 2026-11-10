@@ -1,3 +1,2 @@
 base: ../b2_knowledge.yaml
-run: {name: a1_mean_aggregation}
 model: {aggregation: mean}

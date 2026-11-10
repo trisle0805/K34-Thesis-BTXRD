@@ -1,5 +1,4 @@
 base: base.yaml
-run: {name: b2_knowledge}
 model:
   use_knowledge: true
   aggregation: learned
