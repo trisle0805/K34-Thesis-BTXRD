@@ -1,0 +1,3 @@
+base: h1_hier_decoder.yaml
+knowledge: {pecl_prototype: sub}
+loss: {pecl_weight: 0.1, pecl_temperature: 0.07}

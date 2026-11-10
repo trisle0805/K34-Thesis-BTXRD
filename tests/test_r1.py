@@ -108,15 +108,17 @@ def test_skelex_minmax():
 
 def test_leaf_names_and_recipe_overrides(config_overrides):
     paths = sorted(Path('configs').rglob('*.yaml'))
-    paths = [path for path in paths if path.name != 'base.yaml']
+    paths = [path for path in paths if path.name != 'base.yaml' and path.parent.name != 'taxonomy']
     names = []
     for path in paths:
         overrides = config_overrides(**{'run.name': None})
+        overrides['paths.node_name_cache'] = 'unused-name-cache.pt'
         cfg = load_config(path, overrides)
         assert cfg.run.name == path.stem
         names.append(cfg.run.name)
-        assert load_config(path, config_overrides(run_name='notebook')).run.name == 'notebook'
-    assert len(set(names)) == 8
+        overrides['run.name'] = 'notebook'
+        assert load_config(path, overrides).run.name == 'notebook'
+    assert len(set(names)) == len(paths) == 12
     cfg = load_config('configs/r1_skelex_class_decoder.yaml', config_overrides(**{
         'train.early_stopping.enabled': True, 'train.lr': 0.002,
         'train.warmup_epochs': 3, 'recipes.skelex.train.epochs': 17}))

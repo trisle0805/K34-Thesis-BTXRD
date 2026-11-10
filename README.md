@@ -1,3 +1,29 @@
+# V2 hierarchical query experiments
+
+| Run | Decision rule | Query | PECL prototype |
+|---|---|---|---|
+| B0 | Image classifier | — | — |
+| F1 | Flat shared-head decoder | Class proposition set | Off |
+| H1 | Hierarchical decoder | Own-node propositions (subtree fallback) | Off |
+| H2 | Hierarchical decoder | Own-node propositions | Subtree propositions |
+| H2-N | Hierarchical decoder | Node names | Node names |
+
+Configs: `f1_flat_decoder.yaml`, `h1_hier_decoder.yaml`, `h2_hier_pecl.yaml`,
+and `h2n_hier_name.yaml`. The comparisons are B0→F1 (knowledge decoder),
+F1→H1 (hierarchical decisions), H1→H2 (PECL), and H2-N→H2
+(proposition content versus names).
+
+Create the node-name cache with `python scripts/cache_text_embeddings.py --taxonomy configs/taxonomy/btxrd_8class.yaml --out <NODE_CACHE_PT>`
+and set `paths.node_name_cache`. H2-N needs neither a KB nor a proposition cache.
+The text encoder remains frozen; all node vectors are fixed checkpoint buffers.
+For the query branch, `logits` are normalized **leaf log-probabilities**;
+weighted CE, softmax probabilities, and argmax remain compatible.
+Prediction reconstructs query models from checkpoint taxonomy and vectors;
+external assets can be omitted. Explicit supplied assets must match the checkpoint.
+Clinical hierarchy metrics do not change checkpoint selection (eight-class validation Macro-F1).
+Benign/malignant F1 uses tumour-only ground truth and labels benign/malignant;
+normal predictions count as false negatives. Unsupported node metrics are NaN
+(JSON `null`). Legacy and F1 metrics use the repository clinical tree.
 # R1 backbone and class-conditioned decoder
 
 Install the optional `text` extra (`pip install -e .[text]`) for SKELEX.

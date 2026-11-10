@@ -5,6 +5,7 @@ run:
 seed: 2026
 
 paths:
+  node_name_cache: null
   image_dir: null
   splits_csv: null
   class_weights_csv: null
@@ -64,6 +65,11 @@ model:
     dropout: 0.3
 
 knowledge:
+  hierarchy: flat
+  taxonomy_file: taxonomy/btxrd_8class.yaml
+  query_source: class_set
+  pecl_prototype: sub
+  query_decoder: {num_layers: 4, num_heads: 4, ffn_dim: 1024, dropout: 0.1, init_std: 0.02}
   decoder: {num_heads: 1, scorer: shared, beta_init: 0.1}
   exclude_ids: [P066, P067, P068]
   text_encoder_name: ncbi/MedCPT-Query-Encoder
@@ -75,6 +81,8 @@ knowledge:
   pool_hidden: 128
 
 loss:
+  pecl_weight: 0.0
+  pecl_temperature: 0.07
   contrastive_weight: 0.0
   contrastive_temperature: 0.07
 

@@ -1,0 +1,2 @@
+base: f1_flat_decoder.yaml
+knowledge: {hierarchy: tree, query_source: own}

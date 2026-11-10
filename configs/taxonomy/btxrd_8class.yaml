@@ -1,0 +1,16 @@
+version: btxrd-8class-taxonomy-1.0
+source_note: Grouping per S10 (WHO manual of diagnostic imaging, ch. 9.6) + BTXRD benign/malignant labels
+nodes:
+  - {id: root, parent: null, name: bone radiograph}
+  - {id: normal, parent: root, name: normal bone, leaf_class: normal}
+  - {id: tumour, parent: root, name: bone tumour, source: S10 9.6}
+  - {id: benign, parent: tumour, name: benign bone tumour, source: S10 9.6.1-9.6.5}
+  - {id: osteosarcoma, parent: tumour, name: osteosarcoma, leaf_class: osteosarcoma, source: S10 9.6.6}
+  - {id: cartilage, parent: benign, name: benign cartilage-forming bone tumour, source: S10 9.6.2; 9.5}
+  - {id: osteofibroma, parent: benign, name: osteofibrous dysplasia, leaf_class: osteofibroma, source: S10 9.6.3}
+  - {id: unknown_origin, parent: benign, name: benign bone tumour of unknown origin, source: S10 9.6.5}
+  - {id: osteochondroma, parent: cartilage, name: osteochondroma, leaf_class: osteochondroma}
+  - {id: multiple_osteochondromas, parent: cartilage, name: multiple osteochondromas, leaf_class: multiple_osteochondromas}
+  - {id: synovial_osteochondroma, parent: cartilage, name: synovial chondromatosis, leaf_class: synovial_osteochondroma}
+  - {id: simple_bone_cyst, parent: unknown_origin, name: simple bone cyst, leaf_class: simple_bone_cyst}
+  - {id: giant_cell_tumor, parent: unknown_origin, name: giant cell tumour of bone, leaf_class: giant_cell_tumor}

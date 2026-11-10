@@ -1,0 +1,4 @@
+base: base.yaml
+model: {use_knowledge: true, knowledge_decoder: query}
+knowledge: {hierarchy: flat, query_source: class_set}
+loss: {pecl_weight: 0.0}

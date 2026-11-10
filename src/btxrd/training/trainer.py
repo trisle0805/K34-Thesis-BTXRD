@@ -22,7 +22,7 @@ from btxrd.losses.classification import build_classification_loss
 from btxrd.losses.contrastive import PrototypeContrastiveLoss
 from btxrd.models.model import BTXRDModel
 from btxrd.training.checkpoint import load_checkpoint, save_checkpoint
-from btxrd.training.metrics import compute_metrics
+from btxrd.training.metrics import compute_metrics, clinical_taxonomy
 from btxrd.training.predict import _ARCHITECTURE_KEYS
 from btxrd.utils.io import environment_info, git_commit, sha256_file, write_json
 from btxrd.utils.seed import capture_rng_state, restore_rng_state, seed_everything
@@ -134,6 +134,9 @@ def _prepare_run_dir(cfg) -> Path:
 
 
 def _build_model_inputs(cfg, checkpoint: dict[str, Any] | None = None):
+    if cfg.get_path('model.knowledge_decoder') == 'query':
+        if checkpoint is not None or (cfg.knowledge.query_source == 'name' and (cfg.loss.pecl_weight == 0 or cfg.knowledge.pecl_prototype == 'name')):
+            return None, None, None, None
     if not cfg.model.use_knowledge:
         return None, None, None, None
     if checkpoint is not None and "text_embeddings" in checkpoint.get("model_buffers", {}):
@@ -155,7 +158,7 @@ def _build_model_inputs(cfg, checkpoint: dict[str, Any] | None = None):
 def _run_epoch(model, loader, device, ce_loss, con_loss, cfg, optimizer=None, scaler=None, scheduler=None) -> dict[str, float]:
     training = optimizer is not None
     model.train(training)
-    totals = {"loss_ce": 0.0, "loss_con": 0.0, "loss_total": 0.0}
+    totals = {"loss_ce": 0.0, "loss_con": 0.0, "loss_total": 0.0, 'loss_pecl': 0.0}
     sample_count = 0
     y_true: list[int] = []
     y_pred: list[int] = []
@@ -179,6 +182,11 @@ def _run_epoch(model, loader, device, ce_loss, con_loss, cfg, optimizer=None, sc
             else:
                 loss_con = loss_ce.new_zeros(())
             loss_total = loss_ce + cfg.loss.contrastive_weight * loss_con
+            loss_pecl = loss_ce.new_zeros(())
+            if cfg.get_path('loss.pecl_weight', 0) > 0:
+                from btxrd.losses.pecl import pecl_loss
+                loss_pecl = pecl_loss(output['u'], model.node_prototypes, labels, model.taxonomy, cfg.loss.pecl_temperature)
+                loss_total = loss_total + cfg.loss.pecl_weight * loss_pecl
         if training:
             scaler.scale(loss_total / accum).backward()
             if batch_index % accum == 0 or batch_index == len(loader):
@@ -194,12 +202,16 @@ def _run_epoch(model, loader, device, ce_loss, con_loss, cfg, optimizer=None, sc
         sample_count += count
         totals["loss_ce"] += float(loss_ce.detach()) * count
         totals["loss_con"] += float(loss_con.detach()) * count
+        totals['loss_pecl'] += float(loss_pecl.detach()) * count
         totals["loss_total"] += float(loss_total.detach()) * count
         y_true.extend(labels.detach().cpu().tolist())
         y_pred.extend(output["logits"].detach().argmax(dim=1).cpu().tolist())
     if sample_count == 0:
         raise ValueError("Cannot run an epoch with an empty dataloader")
     metrics = compute_metrics(y_true, y_pred)
+    from btxrd.training.metrics import hierarchical_metrics, clinical_taxonomy
+    clinical = model.taxonomy if getattr(model, 'is_query', False) and cfg.knowledge.hierarchy == 'tree' else clinical_taxonomy()
+    metrics.update(hierarchical_metrics(y_true, y_pred, clinical))
     return {**{key: value / sample_count for key, value in totals.items()}, **metrics}
 
 
@@ -222,12 +234,24 @@ def train(cfg) -> dict[str, Any]:
     if resume_checkpoint and cfg.train.recipe == 'skelex' and resume_checkpoint.get('train_batches') != len(data.loaders['train']):
         raise ValueError('SKELEX resume requires unchanged train loader steps')
     embeddings, kb_ids, class_to_ids, kb_sha256 = _build_model_inputs(cfg, resume_checkpoint)
+    if resume_checkpoint and cfg.model.knowledge_decoder == 'query':
+        kb_ids = resume_checkpoint.get('kb_ids')
+        class_to_ids = resume_checkpoint.get('class_to_ids')
+        kb_sha256 = resume_checkpoint.get('kb_sha256')
+        for name, expected in resume_checkpoint.get('asset_sha256', {}).items():
+            path = cfg.get_path('paths.' + name)
+            if path and sha256_file(path) != expected:
+                raise ValueError(f'Resume {name} hash differs from checkpoint')
     if resume_checkpoint and cfg.model.backbone == 'skelex':
         from btxrd.config import Config
         saved = cfg.to_dict()
         saved['model']['skelex']['vit_config'] = resume_checkpoint['vit_config']
         cfg = Config(saved, cfg.source_path)
-    model = BTXRDModel(cfg, embeddings, class_to_ids, kb_ids, pretrained=False if resume_checkpoint else None).to(device)
+    query_assets = None
+    if resume_checkpoint and cfg.model.knowledge_decoder == 'query':
+        from btxrd.training.predict import checkpoint_query_assets
+        query_assets = checkpoint_query_assets(resume_checkpoint)
+    model = BTXRDModel(cfg, embeddings, class_to_ids, kb_ids, pretrained=False if resume_checkpoint else None, query_assets=query_assets).to(device)
     actual_config = cfg.to_dict()
     if cfg.model.backbone == 'skelex':
         actual_config['model']['skelex']['vit_config'] = model.image_encoder.vit.config.to_dict()
@@ -296,6 +320,15 @@ def train(cfg) -> dict[str, Any]:
             "class_to_ids": class_to_ids,
             "kb_sha256": kb_sha256,
             "model_buffers": model.checkpoint_buffers(),
+            'taxonomy': model.taxonomy.to_dict() if model.is_query else None,
+            'node_ids': model.taxonomy.node_ids if model.is_query else None,
+            'taxonomy_sha256': model.taxonomy.sha256 if model.is_query else None,
+            'proposition_assignment': model.proposition_assignment if model.is_query else {},
+            'asset_sha256': {name: sha256_file(cfg.get_path('paths.' + name))
+                             for name in ('kb_json', 'text_embedding_cache', 'node_name_cache')
+                             if cfg.get_path('paths.' + name) and
+                             (name == 'node_name_cache' and model.is_query and (cfg.knowledge.query_source == 'name' or (cfg.loss.pecl_weight and cfg.knowledge.pecl_prototype == 'name'))
+                              or name != 'node_name_cache' and not (model.is_query and cfg.knowledge.query_source == 'name' and (not cfg.loss.pecl_weight or cfg.knowledge.pecl_prototype == 'name')))},
             "vit_config": model.image_encoder.vit.config.to_dict() if cfg.model.backbone == 'skelex' else None,
             'train_batches': len(data.loaders['train']),
         }
@@ -321,13 +354,20 @@ def train(cfg) -> dict[str, Any]:
     used_files = ["splits_csv", "class_weights_csv"]
     if cfg.model.use_metadata:
         used_files.append("metadata_csv")
-    if cfg.model.use_knowledge:
+    if cfg.model.use_knowledge and not (model.is_query and cfg.knowledge.query_source == 'name' and (not cfg.loss.pecl_weight or cfg.knowledge.pecl_prototype == 'name')):
         used_files.extend(["kb_json", "text_embedding_cache"])
+    if model.is_query and (cfg.knowledge.query_source == 'name' or (cfg.loss.pecl_weight and cfg.knowledge.pecl_prototype == 'name')):
+        used_files.append('node_name_cache')
     info = {
         **result,
         "duration_seconds": time.time() - started,
         "git_commit": git_commit(Path(__file__).resolve()),
         "environment": environment_info(),
+        'query_source': cfg.knowledge.query_source if model.is_query else None,
+        'pecl_prototype': cfg.knowledge.pecl_prototype if model.is_query else None,
+        'uses_proposition_content': bool('kb_json' in used_files),
+        'clinical_taxonomy_sha256': (model.taxonomy.sha256 if model.is_query and cfg.knowledge.hierarchy == 'tree'
+                        else clinical_taxonomy().sha256),
         "parameters": {
             "total": sum(parameter.numel() for parameter in model.parameters()),
             "trainable": sum(parameter.numel() for parameter in model.parameters() if parameter.requires_grad),

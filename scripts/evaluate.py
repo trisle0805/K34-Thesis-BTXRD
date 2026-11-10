@@ -30,6 +30,14 @@ def main() -> None:
     frame.to_csv(output_dir / f"predictions_{args.split}.csv", index=False)
     probabilities = frame[[f"p_{name}" for name in CLASS_NAMES]].to_numpy()
     metrics = compute_metrics(frame["y_true"], frame["y_pred"], probabilities)
+    from btxrd.training.metrics import hierarchical_metrics, clinical_taxonomy
+    from btxrd.training.checkpoint import load_checkpoint
+    from btxrd.knowledge.taxonomy import Taxonomy
+    checkpoint = load_checkpoint(args.checkpoint, 'cpu')
+    saved = checkpoint.get('taxonomy')
+    taxonomy = Taxonomy(**saved) if saved and 'tumour' in saved['node_ids'] else clinical_taxonomy()
+    metrics.update(hierarchical_metrics(frame['y_true'], frame['y_pred'], taxonomy))
+    metrics['clinical_taxonomy_sha256'] = taxonomy.sha256
     write_json(output_dir / f"metrics_{args.split}.json", metrics)
 
 

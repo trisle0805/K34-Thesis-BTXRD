@@ -20,6 +20,7 @@ from btxrd.training.checkpoint import load_checkpoint
 
 
 _ARCHITECTURE_KEYS = (
+    'loss.pecl_weight',
     "model",
     "metadata",
     "knowledge",
@@ -28,6 +29,14 @@ _ARCHITECTURE_KEYS = (
     "data.input_size",
     "data.preprocessing",
 )
+
+def checkpoint_query_assets(checkpoint):
+    from btxrd.knowledge.taxonomy import Taxonomy
+    buffers = checkpoint['model_buffers']
+    taxonomy = Taxonomy(**checkpoint['taxonomy'])
+    if taxonomy.node_ids != checkpoint['node_ids'] or taxonomy.sha256 != checkpoint['taxonomy_sha256']:
+        raise ValueError('Checkpoint taxonomy metadata mismatch')
+    return taxonomy, buffers['node_text'], buffers.get('node_prototypes'), checkpoint.get('proposition_assignment', {})
 _RUNTIME_KEYS = (
     "paths",
     "data.batch_size",
@@ -58,6 +67,9 @@ def _prediction_config(runtime_cfg, checkpoint_config: dict[str, Any]) -> Config
     runtime = runtime_cfg.to_dict()
     if runtime['model']['backbone'] == 'skelex':
         runtime['model']['skelex']['vit_config'] = checkpoint_config['model']['skelex']['vit_config']
+    if checkpoint_config['model']['knowledge_decoder'] == 'query':
+        # Taxonomy location is provenance, not architecture; its content is audited.
+        runtime['knowledge']['taxonomy_file'] = checkpoint_config['knowledge']['taxonomy_file']
     mismatches = [key for key in _ARCHITECTURE_KEYS if _get_dotted(runtime, key) != _get_dotted(checkpoint_config, key)]
     if mismatches:
         raise ValueError(f"Prediction architecture differs from checkpoint at: {', '.join(mismatches)}")
@@ -83,6 +95,24 @@ def _verify_optional_knowledge(cfg, checkpoint: dict[str, Any]) -> None:
         raise ValueError("paths.text_embedding_cache cannot be verified without paths.kb_json")
 
 
+def verify_query_assets(cfg, checkpoint):
+    """Audit supplied assets independently; never open checkpoint-stored paths."""
+    from btxrd.knowledge.node_vectors import taxonomy_path
+    from btxrd.knowledge.taxonomy import load_taxonomy
+    from btxrd.utils.io import sha256_file
+
+    for name in ('kb_json', 'text_embedding_cache', 'node_name_cache'):
+        path = cfg.get_path('paths.' + name)
+        if path:
+            actual = sha256_file(path)
+            expected = checkpoint.get('asset_sha256', {}).get(name)
+            if expected is None or actual != expected:
+                raise ValueError(f'Provided {name} hash does not match checkpoint')
+    if 'knowledge.taxonomy_file' in getattr(cfg, 'explicit_keys', set()):
+        if load_taxonomy(taxonomy_path(cfg), CLASS_NAMES).sha256 != checkpoint['taxonomy_sha256']:
+            raise ValueError('Provided taxonomy does not match checkpoint')
+
+
 def predict(cfg, checkpoint_path: str | Path, split: str = "test", return_extras: bool = False):
     checkpoint = load_checkpoint(checkpoint_path, "cpu")
     resolved = _prediction_config(cfg, checkpoint["config"])
@@ -90,7 +120,12 @@ def predict(cfg, checkpoint_path: str | Path, split: str = "test", return_extras
         saved = resolved.to_dict()
         saved['model']['skelex']['vit_config'] = checkpoint['vit_config']
         resolved = Config(saved, resolved.source_path)
-    if resolved.model.use_knowledge:
+    is_query = resolved.model.knowledge_decoder == 'query'
+    query_assets = checkpoint_query_assets(checkpoint) if is_query else None
+    if is_query:
+        embeddings = None
+        verify_query_assets(cfg, checkpoint)
+    elif resolved.model.use_knowledge:
         _verify_optional_knowledge(resolved, checkpoint)
         embeddings = checkpoint.get("model_buffers", {}).get("text_embeddings")
         if embeddings is None:
@@ -105,6 +140,7 @@ def predict(cfg, checkpoint_path: str | Path, split: str = "test", return_extras
         checkpoint.get("class_to_ids"),
         checkpoint.get("kb_ids"),
         pretrained=False,
+        query_assets=query_assets,
     ).to(device)
     model.load_state_dict(checkpoint["model_state"])
     model.eval()
@@ -115,7 +151,7 @@ def predict(cfg, checkpoint_path: str | Path, split: str = "test", return_extras
     probabilities: list[np.ndarray] = []
     cross_attn: list[np.ndarray] = []
     aggregation: list[np.ndarray] = []
-    decoder_extras = {key: [] for key in ('class_attn_weights', 'logits_img', 'logits_kb')}
+    decoder_extras = {key: [] for key in ('class_attn_weights', 'logits_img', 'logits_kb', 'node_logits', 'node_marginals')}
     with torch.no_grad():
         for batch in data.loaders[split]:
             image = batch["image"].to(device, non_blocking=True)
@@ -123,6 +159,8 @@ def predict(cfg, checkpoint_path: str | Path, split: str = "test", return_extras
             if metadata is not None:
                 metadata = metadata.to(device, non_blocking=True)
             output = model(image, metadata)
+            if 'node_log_marg' in output:
+                output['node_marginals'] = output['node_log_marg'].exp()
             for key, values in decoder_extras.items():
                 if key in output:
                     values.append(output[key].cpu().numpy())
@@ -155,4 +193,6 @@ def predict(cfg, checkpoint_path: str | Path, split: str = "test", return_extras
         "kb_ids": checkpoint.get("kb_ids") if resolved.model.use_knowledge else None,
     }
     extras.update({key: np.concatenate(values) for key, values in decoder_extras.items() if values})
+    if is_query:
+        extras['node_ids'] = query_assets[0].node_ids
     return frame, extras

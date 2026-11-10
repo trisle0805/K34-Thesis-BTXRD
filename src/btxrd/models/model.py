@@ -18,7 +18,7 @@ from btxrd.models.class_decoder import ClassConditionedDecoder, build_class_prot
 
 
 class BTXRDModel(nn.Module):
-    def __init__(self, cfg, text_embeddings: torch.Tensor | None = None, class_to_ids: dict[str, list[str]] | None = None, kb_ids: list[str] | None = None, pretrained: bool | None = None):
+    def __init__(self, cfg, text_embeddings: torch.Tensor | None = None, class_to_ids: dict[str, list[str]] | None = None, kb_ids: list[str] | None = None, pretrained: bool | None = None, query_assets=None):
         super().__init__()
         self.use_metadata = bool(cfg.model.use_metadata)
         self.use_knowledge = bool(cfg.model.use_knowledge)
@@ -27,6 +27,21 @@ class BTXRDModel(nn.Module):
         self.image_encoder = build_image_encoder(cfg, pretrained, densenet_class=DenseNet169Encoder)
         feature_dim = getattr(self.image_encoder, 'global_dim', IMAGE_FEATURE_DIM)
         self.class_conditioned = cfg.get_path('model.knowledge_decoder', 'global') == 'class_conditioned'
+        self.is_query = cfg.get_path('model.knowledge_decoder', 'global') == 'query'
+        if self.is_query:
+            from btxrd.knowledge.node_vectors import build_node_assets
+            from btxrd.models.query_decoder import QueryDecoder
+            from btxrd.models.hierarchy import HierarchicalLogProbs
+            self.taxonomy, text, prototypes, self.proposition_assignment = query_assets or build_node_assets(cfg, text_embeddings, class_to_ids, kb_ids)
+            self.query_decoder = QueryDecoder(self.image_encoder.token_dim, text, dim=cfg.knowledge.dim,
+                                              **cfg.knowledge.query_decoder.to_dict())
+            self.hierarchy = HierarchicalLogProbs(self.taxonomy)
+            if prototypes is not None:
+                self.register_buffer('node_prototypes', prototypes.detach().float().clone())
+                self.phi = nn.Linear(self.image_encoder.global_dim, text.shape[1])
+                nn.init.normal_(self.phi.weight, std=0.02)
+                nn.init.zeros_(self.phi.bias)
+            return
 
         self.metadata_mlp: MetadataMLP | None = None
         if self.use_metadata:
@@ -79,6 +94,13 @@ class BTXRDModel(nn.Module):
             spatial_shape = None
         fusion_features = [z_img]
         result: dict[str, torch.Tensor | None] = {"z_img": z_img}
+        if self.is_query:
+            node_logits, weights = self.query_decoder(feature_map)
+            leaf, marginal = self.hierarchy(node_logits)
+            result.update(logits=leaf, node_logits=node_logits, node_log_marg=marginal, cross_attn_weights=weights)
+            if hasattr(self, 'phi'):
+                result['u'] = F.normalize(self.phi(z_img), dim=-1)
+            return result
         if self.use_metadata:
             if meta is None or self.metadata_mlp is None:
                 raise ValueError("Metadata tensor is required for this model")
@@ -112,6 +134,9 @@ class BTXRDModel(nn.Module):
         return result
 
     def checkpoint_buffers(self) -> dict[str, Any]:
+        if self.is_query:
+            return {'node_text': self.query_decoder.node_text.detach().cpu(),
+                    'node_prototypes': self.node_prototypes.detach().cpu() if hasattr(self, 'node_prototypes') else None}
         if self.cross_attention is None:
             return {}
         buffers: dict[str, Any] = {"text_embeddings": self.cross_attention.text_emb.detach().cpu()}

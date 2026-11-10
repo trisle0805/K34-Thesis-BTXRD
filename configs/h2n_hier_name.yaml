@@ -1,0 +1,2 @@
+base: h2_hier_pecl.yaml
+knowledge: {query_source: name, pecl_prototype: name}

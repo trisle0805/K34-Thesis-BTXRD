@@ -16,6 +16,7 @@ class Config(Mapping[str, Any]):
     def __init__(self, data: dict[str, Any], source_path: str | Path | None = None):
         self._data = data
         self.source_path = Path(source_path).resolve() if source_path else None
+        self.explicit_keys: set[str] = set()
 
     def __getitem__(self, key: str) -> Any:
         value = self._data[key]
@@ -58,6 +59,10 @@ def _deep_merge(base: dict[str, Any], child: dict[str, Any]) -> dict[str, Any]:
 def migrate_config(data: dict[str, Any]) -> dict[str, Any]:
     """Supply architecture/protocol defaults absent from pre-R1 checkpoints."""
     result = deepcopy(data)
+    defaults = _read_with_bases(Path(__file__).resolve().parents[2] / 'configs' / 'base.yaml')
+    for section in ('knowledge', 'loss', 'paths'):
+        for key, value in defaults[section].items():
+            result[section].setdefault(key, deepcopy(value))
     model = result['model']
     model.setdefault('knowledge_decoder', 'global')
     model.setdefault('residual_knowledge_logits', False)
@@ -160,8 +165,35 @@ def validate_config(data: dict[str, Any], schema: dict[str, Any] | None = None, 
     if model['backbone'] not in {'densenet169', 'skelex'}:
         raise ValueError('Unsupported model.backbone')
     decoder = model.get('knowledge_decoder', 'global')
-    if decoder not in {'global', 'class_conditioned'}:
+    if decoder not in {'global', 'class_conditioned', 'query'}:
         raise ValueError('Invalid model.knowledge_decoder')
+    pecl = loss.get('pecl_weight', 0)
+    _require_positive('loss.pecl_weight', pecl, allow_zero=True)
+    _require_positive('loss.pecl_temperature', loss.get('pecl_temperature', 0.07))
+    if pecl and (decoder != 'query' or model['use_contrastive']):
+        raise ValueError('PECL requires query without contrastive')
+    if decoder == 'query':
+        if not model['use_knowledge'] or any(model[k] for k in ('use_metadata', 'use_contrastive', 'residual_knowledge_logits', 'use_positional_embedding')):
+            raise ValueError('query requires knowledge only without residual or positional embeddings')
+        if (knowledge['hierarchy'], knowledge['query_source']) not in {('flat', 'class_set'), ('tree', 'own'), ('tree', 'name')}:
+            raise ValueError('Invalid hierarchy/query_source combination')
+        if knowledge['pecl_prototype'] not in {'sub', 'name'}:
+            raise ValueError('Invalid pecl_prototype')
+        q = knowledge['query_decoder']
+        for key in ('num_layers', 'num_heads', 'ffn_dim'):
+            if not isinstance(q[key], int) or isinstance(q[key], bool) or q[key] < 1:
+                raise ValueError(f'Invalid query_decoder.{key}')
+        if knowledge['dim'] % q['num_heads'] or not 0 <= q['dropout'] < 1:
+            raise ValueError('Invalid query decoder heads/dropout')
+        _require_positive('query_decoder.init_std', q['init_std'])
+        if require_training_assets:
+            if knowledge['hierarchy'] == 'tree':
+                from btxrd.knowledge.node_vectors import taxonomy_path
+                from btxrd.knowledge.taxonomy import load_taxonomy
+                from btxrd.constants import CLASS_NAMES
+                load_taxonomy(taxonomy_path(Config(data)), CLASS_NAMES)
+            if (knowledge['query_source'] == 'name' or (pecl and knowledge['pecl_prototype'] == 'name')) and not data['paths'].get('node_name_cache'):
+                raise ValueError('paths.node_name_cache required')
     if (decoder == 'class_conditioned') != model.get('residual_knowledge_logits', False):
         raise ValueError('class_conditioned requires residual_knowledge_logits and vice versa')
     if decoder == 'class_conditioned' and (not model['use_knowledge'] or model['use_metadata'] or model['use_contrastive']):
@@ -221,7 +253,8 @@ def validate_config(data: dict[str, Any], schema: dict[str, Any] | None = None, 
     required_paths = ["image_dir", "splits_csv", "class_weights_csv", "output_dir"]
     if model["use_metadata"]:
         required_paths.append("metadata_csv")
-    if model["use_knowledge"] and require_training_assets:
+    name_only = decoder == 'query' and knowledge['query_source'] == 'name' and (not pecl or knowledge['pecl_prototype'] == 'name')
+    if model["use_knowledge"] and require_training_assets and not name_only:
         required_paths.extend(["kb_json", "text_embedding_cache"])
     missing = [name for name in required_paths if not data["paths"].get(name)]
     if missing:
@@ -258,4 +291,6 @@ def load_config(
     if data["run"]["name"] is None:
         data["run"]["name"] = path.stem
     validate_config(data, schema, require_training_assets=require_training_assets)
-    return Config(data, path)
+    config = Config(data, path)
+    config.explicit_keys = set(overrides) if isinstance(overrides, dict) else {item.split('=', 1)[0] for item in (overrides or [])}
+    return config

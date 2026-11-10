@@ -9,6 +9,34 @@ from sklearn.metrics import accuracy_score, balanced_accuracy_score, precision_r
 
 from btxrd.constants import CLASS_NAMES
 
+def clinical_taxonomy():
+    from pathlib import Path
+    from btxrd.knowledge.taxonomy import load_taxonomy
+    return load_taxonomy(Path(__file__).resolve().parents[3] / 'configs/taxonomy/btxrd_8class.yaml', CLASS_NAMES)
+
+
+def hierarchical_metrics(y_true, y_pred, taxonomy):
+    from sklearn.metrics import f1_score
+    true = [CLASS_NAMES[int(i)] for i in y_true]
+    pred = [CLASS_NAMES[int(i)] for i in y_pred]
+    def group(c):
+        path = taxonomy.paths[taxonomy.leaf_of_class[c]]
+        return 0 if 'normal' in path else (1 if 'benign' in path else 2)
+    a, b = np.array([group(c) for c in true]), np.array([group(c) for c in pred])
+    tumour = a != 0
+    result = {
+        'normal_vs_tumour_f1': float(f1_score(a != 0, b != 0, labels=[False, True], average='macro', zero_division=0)) if len(a) else float('nan'),
+        'benign_vs_malignant_f1': float(f1_score(a[tumour], b[tumour], labels=[1, 2], average='macro', zero_division=0)) if tumour.any() else float('nan'),
+        'severe_error_rate': float((a != b).mean()) if len(a) else float('nan'),
+    }
+    for p in taxonomy.decision_nodes:
+        def child(c):
+            path = taxonomy.paths[taxonomy.leaf_of_class[c]]
+            return next((n for n in path if taxonomy.parent[n] == p), None)
+        pairs = [(child(t), child(pr)) for t, pr in zip(true, pred) if child(t) is not None]
+        result[f'node_accuracy_{p}'] = float(np.mean([t == pr for t, pr in pairs])) if pairs else float('nan')
+    return result
+
 
 def compute_metrics(y_true, y_pred, y_prob=None, class_names: list[str] = CLASS_NAMES) -> dict[str, Any]:
     y_true = np.asarray(y_true, dtype=np.int64)
