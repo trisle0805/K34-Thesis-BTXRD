@@ -27,8 +27,12 @@ from btxrd.training.predict import _ARCHITECTURE_KEYS
 from btxrd.utils.io import environment_info, git_commit, sha256_file, write_json
 from btxrd.utils.seed import capture_rng_state, restore_rng_state, seed_everything
 from btxrd.constants import CLASS_NAMES
+from btxrd.training.optim import build_optimizer, build_scheduler
+from btxrd.config import migrate_config
 
 _RESUME_PROTOCOL_KEYS = (
+    'train.recipe', 'train.grad_accum', 'train.clip_grad_norm',
+    'train.warmup_epochs', 'train.layer_decay',
     "loss",
     "seed",
     "train.lr",
@@ -65,7 +69,12 @@ def _flatten_config(data: dict[str, Any], prefix: str = "") -> dict[str, Any]:
     return flattened
 
 def _validate_resume_config(cfg, checkpoint_config: dict[str, Any]) -> None:
+    checkpoint_config = migrate_config(checkpoint_config)
     runtime = cfg.to_dict()
+    if cfg.model.backbone == 'skelex':
+        runtime['model']['skelex']['vit_config'] = checkpoint_config['model']['skelex']['vit_config']
+    if cfg.train.recipe == 'skelex' and runtime['train']['epochs'] != checkpoint_config['train']['epochs']:
+        raise ValueError('Resume config differs from checkpoint at: train.epochs (SKELEX horizon is locked)')
     required_keys = (*_ARCHITECTURE_KEYS, *_RESUME_PROTOCOL_KEYS)
     required_mismatches = {
         key for key in required_keys
@@ -143,21 +152,22 @@ def _build_model_inputs(cfg, checkpoint: dict[str, Any] | None = None):
     return embeddings, kb.ids, kb.class_to_ids, kb.sha256
 
 
-def _run_epoch(model, loader, device, ce_loss, con_loss, cfg, optimizer=None, scaler=None) -> dict[str, float]:
+def _run_epoch(model, loader, device, ce_loss, con_loss, cfg, optimizer=None, scaler=None, scheduler=None) -> dict[str, float]:
     training = optimizer is not None
     model.train(training)
     totals = {"loss_ce": 0.0, "loss_con": 0.0, "loss_total": 0.0}
     sample_count = 0
     y_true: list[int] = []
     y_pred: list[int] = []
-    for batch in tqdm(loader, leave=False, disable=len(loader) < 2):
+    accum = cfg.train.grad_accum
+    if training:
+        optimizer.zero_grad(set_to_none=True)
+    for batch_index, batch in enumerate(tqdm(loader, leave=False, disable=len(loader) < 2), 1):
         image = batch["image"].to(device, non_blocking=True)
         labels = batch["label"].to(device, non_blocking=True)
         metadata = batch.get("meta")
         if metadata is not None:
             metadata = metadata.to(device, non_blocking=True)
-        if training:
-            optimizer.zero_grad(set_to_none=True)
         amp_enabled = device.type == "cuda" and cfg.train.amp
         context = torch.amp.autocast("cuda", enabled=True) if amp_enabled else nullcontext()
         grad_context = torch.enable_grad() if training else torch.no_grad()
@@ -170,9 +180,16 @@ def _run_epoch(model, loader, device, ce_loss, con_loss, cfg, optimizer=None, sc
                 loss_con = loss_ce.new_zeros(())
             loss_total = loss_ce + cfg.loss.contrastive_weight * loss_con
         if training:
-            scaler.scale(loss_total).backward()
-            scaler.step(optimizer)
-            scaler.update()
+            scaler.scale(loss_total / accum).backward()
+            if batch_index % accum == 0 or batch_index == len(loader):
+                if cfg.train.clip_grad_norm is not None:
+                    scaler.unscale_(optimizer)
+                    torch.nn.utils.clip_grad_norm_(model.parameters(), cfg.train.clip_grad_norm)
+                scaler.step(optimizer)
+                scaler.update()
+                optimizer.zero_grad(set_to_none=True)
+                if scheduler is not None:
+                    scheduler.step()
         count = labels.shape[0]
         sample_count += count
         totals["loss_ce"] += float(loss_ce.detach()) * count
@@ -202,10 +219,20 @@ def train(cfg) -> dict[str, Any]:
     metadata_stats = resume_checkpoint.get("metadata_stats") if resume_checkpoint else None
     generator_state = resume_checkpoint.get("train_generator_state") if resume_checkpoint else None
     data = build_dataloaders(cfg, ("train", "val"), metadata_stats, generator_state)
+    if resume_checkpoint and cfg.train.recipe == 'skelex' and resume_checkpoint.get('train_batches') != len(data.loaders['train']):
+        raise ValueError('SKELEX resume requires unchanged train loader steps')
     embeddings, kb_ids, class_to_ids, kb_sha256 = _build_model_inputs(cfg, resume_checkpoint)
-    model = BTXRDModel(cfg, embeddings, class_to_ids, kb_ids).to(device)
-    optimizer = Adam((parameter for parameter in model.parameters() if parameter.requires_grad), lr=cfg.train.lr, weight_decay=cfg.train.weight_decay)
-    scheduler = StepLR(optimizer, step_size=cfg.train.step_size, gamma=cfg.train.gamma)
+    if resume_checkpoint and cfg.model.backbone == 'skelex':
+        from btxrd.config import Config
+        saved = cfg.to_dict()
+        saved['model']['skelex']['vit_config'] = resume_checkpoint['vit_config']
+        cfg = Config(saved, cfg.source_path)
+    model = BTXRDModel(cfg, embeddings, class_to_ids, kb_ids, pretrained=False if resume_checkpoint else None).to(device)
+    actual_config = cfg.to_dict()
+    if cfg.model.backbone == 'skelex':
+        actual_config['model']['skelex']['vit_config'] = model.image_encoder.vit.config.to_dict()
+    optimizer = build_optimizer(model, cfg)
+    scheduler = build_scheduler(optimizer, cfg, len(data.loaders['train']))
     scaler = torch.amp.GradScaler("cuda", enabled=device.type == "cuda" and cfg.train.amp)
     ce_loss = build_classification_loss(data.class_weights, device)
     con_loss = PrototypeContrastiveLoss()
@@ -227,13 +254,18 @@ def train(cfg) -> dict[str, Any]:
         history = list(resume_checkpoint.get("history", []))
         restore_rng_state(resume_checkpoint["rng_state"])
 
-    (run_dir / "config_resolved.yaml").write_text(yaml.safe_dump(cfg.to_dict(), sort_keys=False, allow_unicode=True), encoding="utf-8")
+    (run_dir / "config_resolved.yaml").write_text(yaml.safe_dump(actual_config, sort_keys=False, allow_unicode=True), encoding="utf-8")
     stopped_early = False
     for epoch in range(start_epoch, cfg.train.epochs):
         lr = optimizer.param_groups[0]["lr"]
-        train_metrics = _run_epoch(model, data.loaders["train"], device, ce_loss, con_loss, cfg, optimizer, scaler)
+        train_metrics = _run_epoch(model, data.loaders["train"], device, ce_loss, con_loss, cfg, optimizer, scaler,
+                       scheduler if cfg.train.recipe == 'skelex' else None)
         val_metrics = _run_epoch(model, data.loaders["val"], device, ce_loss, con_loss, cfg)
         row = {"epoch": epoch, "lr": lr}
+        if cfg.train.recipe == 'skelex':
+            row['lr'] = max(optimizer.param_groups, key=lambda group: group['layer_id'])['lr']
+        if hasattr(model, 'knowledge_logit_scale'):
+            row['knowledge_logit_scale'] = float(model.knowledge_logit_scale.detach())
         row.update({f"train_{key}": value for key, value in train_metrics.items()})
         row.update({f"val_{key}": value for key, value in val_metrics.items()})
         history.append(row)
@@ -258,16 +290,19 @@ def train(cfg) -> dict[str, Any]:
             "best_epoch": best_epoch,
             "early_stopping_counter": early_counter,
             "history": history,
-            "config": cfg.to_dict(),
+            "config": actual_config,
             "metadata_stats": metadata_state,
             "kb_ids": kb_ids,
             "class_to_ids": class_to_ids,
             "kb_sha256": kb_sha256,
             "model_buffers": model.checkpoint_buffers(),
+            "vit_config": model.image_encoder.vit.config.to_dict() if cfg.model.backbone == 'skelex' else None,
+            'train_batches': len(data.loaders['train']),
         }
         if improved:
             save_checkpoint(run_dir / "best.pt", state)
-        scheduler.step()
+        if cfg.train.recipe == 'densenet':
+            scheduler.step()
         state["scheduler_state"] = scheduler.state_dict()
         state["rng_state"] = capture_rng_state()
         state["train_generator_state"] = data.train_generator.get_state() if data.train_generator else None

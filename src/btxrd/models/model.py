@@ -13,6 +13,8 @@ from btxrd.models.aggregation import build_aggregation
 from btxrd.models.cross_attention import PropositionCrossAttention
 from btxrd.models.fusion import ClassifierHead, MetadataMLP
 from btxrd.models.image_encoder import DenseNet169Encoder
+from btxrd.models.image_encoder import build_image_encoder, EncoderOutput
+from btxrd.models.class_decoder import ClassConditionedDecoder, build_class_prototypes
 
 
 class BTXRDModel(nn.Module):
@@ -22,8 +24,9 @@ class BTXRDModel(nn.Module):
         self.use_knowledge = bool(cfg.model.use_knowledge)
         if pretrained is None:
             pretrained = bool(cfg.model.pretrained)
-        self.image_encoder = DenseNet169Encoder(pretrained=pretrained)
-        feature_dim = IMAGE_FEATURE_DIM
+        self.image_encoder = build_image_encoder(cfg, pretrained, densenet_class=DenseNet169Encoder)
+        feature_dim = getattr(self.image_encoder, 'global_dim', IMAGE_FEATURE_DIM)
+        self.class_conditioned = cfg.get_path('model.knowledge_decoder', 'global') == 'class_conditioned'
 
         self.metadata_mlp: MetadataMLP | None = None
         if self.use_metadata:
@@ -38,14 +41,18 @@ class BTXRDModel(nn.Module):
                 raise ValueError("text_embeddings are required when model.use_knowledge=true")
             self.cross_attention = PropositionCrossAttention(
                 text_emb=text_embeddings,
-                image_dim=IMAGE_FEATURE_DIM,
+                image_dim=getattr(self.image_encoder, 'token_dim', IMAGE_FEATURE_DIM),
                 dim=cfg.knowledge.dim,
                 num_heads=cfg.knowledge.num_heads,
                 dropout=cfg.knowledge.attention_dropout,
                 use_positional_embedding=cfg.model.use_positional_embedding,
             )
-            self.knowledge_aggregation = build_aggregation(cfg.model.aggregation, cfg.knowledge.dim, cfg.knowledge.pool_hidden)
-            feature_dim += cfg.knowledge.dim
+            if self.class_conditioned:
+                self.class_decoder = ClassConditionedDecoder(cfg, text_embeddings, class_to_ids, kb_ids)
+                self.knowledge_logit_scale = nn.Parameter(torch.tensor(float(cfg.knowledge.decoder.beta_init)))
+            else:
+                self.knowledge_aggregation = build_aggregation(cfg.model.aggregation, cfg.knowledge.dim, cfg.knowledge.pool_hidden)
+                feature_dim += cfg.knowledge.dim
 
         self.classifier = ClassifierHead(
             feature_dim,
@@ -58,17 +65,18 @@ class BTXRDModel(nn.Module):
         if cfg.model.use_contrastive:
             if class_to_ids is None or kb_ids is None or text_embeddings is None:
                 raise ValueError("class_to_ids and kb_ids are required for contrastive initialization")
-            normalized = F.normalize(text_embeddings.float(), dim=-1)
-            id_to_index = {item: index for index, item in enumerate(kb_ids)}
-            prototypes = torch.stack([
-                F.normalize(normalized[[id_to_index[item] for item in class_to_ids[name]]].mean(0), dim=0)
-                for name in CLASS_NAMES
-            ])
+            prototypes = build_class_prototypes(text_embeddings, class_to_ids, kb_ids)
             self.register_buffer("prototypes", prototypes)
             self.phi = nn.Linear(cfg.knowledge.dim, cfg.knowledge.text_dim)
 
     def forward(self, image: torch.Tensor, meta: torch.Tensor | None = None) -> dict[str, torch.Tensor | None]:
-        feature_map, z_img = self.image_encoder(image)
+        encoded = self.image_encoder(image)
+        if isinstance(encoded, EncoderOutput):
+            feature_map, z_img = encoded.visual_tokens, encoded.global_feature
+            spatial_shape = encoded.spatial_shape
+        else:
+            feature_map, z_img = encoded
+            spatial_shape = None
         fusion_features = [z_img]
         result: dict[str, torch.Tensor | None] = {"z_img": z_img}
         if self.use_metadata:
@@ -78,9 +86,18 @@ class BTXRDModel(nn.Module):
             fusion_features.append(z_meta)
             result["z_meta"] = z_meta
         if self.use_knowledge:
-            if self.cross_attention is None or self.knowledge_aggregation is None:
+            if self.cross_attention is None:
                 raise RuntimeError("Knowledge modules are not initialized")
-            prop_features, spatial_attention = self.cross_attention(feature_map)
+            prop_features, spatial_attention = self.cross_attention(feature_map, spatial_shape)
+            if self.class_conditioned:
+                logits_kb, class_weights = self.class_decoder(prop_features)
+                logits_img = self.classifier(z_img)
+                result.update(logits=logits_img + self.knowledge_logit_scale * logits_kb,
+                              logits_img=logits_img, logits_kb=logits_kb,
+                              knowledge_logit_scale=self.knowledge_logit_scale,
+                              prop_features=prop_features, cross_attn_weights=spatial_attention,
+                              class_attn_weights=class_weights)
+                return result
             z_kb, aggregation_weights = self.knowledge_aggregation(prop_features)
             fusion_features.append(z_kb)
             result.update(

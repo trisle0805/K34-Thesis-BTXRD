@@ -209,9 +209,11 @@ def test_image_encoder_matches_torchvision_pooling():
     ref.eval()
     image = torch.randn(1, 3, 224, 224)
     with torch.no_grad():
-        feature_map, pooled = encoder(image)
+        encoded = encoder(image)
+        pooled = encoded.global_feature
         expected = ref(image)
-    assert feature_map.shape == (1, 1664, 7, 7)
+    assert encoded.visual_tokens.shape == (1, 49, 1664)
+    assert encoded.spatial_shape == (7, 7)
     assert torch.allclose(pooled, expected, atol=1e-5)
 
 def test_knowledge_buffers_are_frozen_and_excluded_from_optimizer(monkeypatch):

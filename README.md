@@ -1,3 +1,42 @@
+# R1 backbone and class-conditioned decoder
+
+Install the optional `text` extra (`pip install -e .[text]`) for SKELEX.
+Transformers is imported lazily; DenseNet experiments do not require it.
+
+| Run | Config | Encoder | Knowledge |
+| --- | --- | --- | --- |
+| B0 | `configs/b0_image.yaml` | DenseNet-169 | None |
+| B2 | `configs/b2_knowledge.yaml` | DenseNet-169 | Global learned aggregation |
+| B3 | `configs/b3_contrastive.yaml` | DenseNet-169 | Global + contrastive |
+| A1 | `configs/ablations/a1_mean_aggregation.yaml` | DenseNet-169 | Mean aggregation |
+| S0 | `configs/s0_skelex_image.yaml` | SKELEX CLS | None |
+| R1-D | `configs/r1_densenet_class_decoder.yaml` | DenseNet-169 | Masked class decoder |
+| R1-S | `configs/r1_skelex_class_decoder.yaml` | SKELEX patches | Masked class decoder |
+
+Compare R1-D against B0 and B2; compare R1-S against S0. These are
+different backbone baselines, not a single controlled backbone comparison.
+
+Automatic settings resolve after YAML inheritance and command-line overrides.
+DenseNet retains Adam/StepLR, 100 epochs, batch 32. SKELEX uses AdamW,
+layer-wise LR decay 0.75, base LR 5e-5, weight decay 0.05, physical batch
+16, accumulation 2, gradient clipping 1.0, five warmup epochs and cosine
+decay over 50 epochs without early stopping. Explicit YAML values override
+automatic defaults. SKELEX preprocessing applies grayscale per-image min-max
+before RGB conversion, resizing, train-only affine, and ImageNet normalization.
+
+R1 adds masked class queries and residual knowledge logits with trainable
+`knowledge_logit_scale` (initially 0.1, no weight decay). Evaluation attention
+is normalized within each class's proposition set. Prediction extras include
+`class_attn_weights`, `logits_img`, and `logits_kb`.
+
+Checkpoints embed actual ViT configuration and weights, so prediction and
+resume never download pretrained SKELEX weights. SKELEX resume locks the
+original epoch horizon and training-loader length. Tiny offline encoder tests
+use `model.pretrained=false`; this is not a replacement for the pretrained
+Colab reproduction experiment. Historical compatibility fixtures record keys,
+shapes, and parameter order generated from commit
+`80db4436262106050fda45d13d4b27b1dc6d9003`.
+
 # BTXRD 8-Class Classification
 
 Reproducible PyTorch package for the five locked BTXRD experiments described in `thesis/SOURCE_OF_TRUTH_BTXRD_8CLASS_VI.md` and `coding_guide/CODING_GUIDE_BTXRD.md`.

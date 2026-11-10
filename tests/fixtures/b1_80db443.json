@@ -1,0 +1,3745 @@
+{
+  "commit": "80db4436262106050fda45d13d4b27b1dc6d9003",
+  "state_dict": {
+    "image_encoder.features.conv0.weight": [
+      64,
+      3,
+      7,
+      7
+    ],
+    "image_encoder.features.norm0.weight": [
+      64
+    ],
+    "image_encoder.features.norm0.bias": [
+      64
+    ],
+    "image_encoder.features.norm0.running_mean": [
+      64
+    ],
+    "image_encoder.features.norm0.running_var": [
+      64
+    ],
+    "image_encoder.features.norm0.num_batches_tracked": [],
+    "image_encoder.features.denseblock1.denselayer1.norm1.weight": [
+      64
+    ],
+    "image_encoder.features.denseblock1.denselayer1.norm1.bias": [
+      64
+    ],
+    "image_encoder.features.denseblock1.denselayer1.norm1.running_mean": [
+      64
+    ],
+    "image_encoder.features.denseblock1.denselayer1.norm1.running_var": [
+      64
+    ],
+    "image_encoder.features.denseblock1.denselayer1.norm1.num_batches_tracked": [],
+    "image_encoder.features.denseblock1.denselayer1.conv1.weight": [
+      128,
+      64,
+      1,
+      1
+    ],
+    "image_encoder.features.denseblock1.denselayer1.norm2.weight": [
+      128
+    ],
+    "image_encoder.features.denseblock1.denselayer1.norm2.bias": [
+      128
+    ],
+    "image_encoder.features.denseblock1.denselayer1.norm2.running_mean": [
+      128
+    ],
+    "image_encoder.features.denseblock1.denselayer1.norm2.running_var": [
+      128
+    ],
+    "image_encoder.features.denseblock1.denselayer1.norm2.num_batches_tracked": [],
+    "image_encoder.features.denseblock1.denselayer1.conv2.weight": [
+      32,
+      128,
+      3,
+      3
+    ],
+    "image_encoder.features.denseblock1.denselayer2.norm1.weight": [
+      96
+    ],
+    "image_encoder.features.denseblock1.denselayer2.norm1.bias": [
+      96
+    ],
+    "image_encoder.features.denseblock1.denselayer2.norm1.running_mean": [
+      96
+    ],
+    "image_encoder.features.denseblock1.denselayer2.norm1.running_var": [
+      96
+    ],
+    "image_encoder.features.denseblock1.denselayer2.norm1.num_batches_tracked": [],
+    "image_encoder.features.denseblock1.denselayer2.conv1.weight": [
+      128,
+      96,
+      1,
+      1
+    ],
+    "image_encoder.features.denseblock1.denselayer2.norm2.weight": [
+      128
+    ],
+    "image_encoder.features.denseblock1.denselayer2.norm2.bias": [
+      128
+    ],
+    "image_encoder.features.denseblock1.denselayer2.norm2.running_mean": [
+      128
+    ],
+    "image_encoder.features.denseblock1.denselayer2.norm2.running_var": [
+      128
+    ],
+    "image_encoder.features.denseblock1.denselayer2.norm2.num_batches_tracked": [],
+    "image_encoder.features.denseblock1.denselayer2.conv2.weight": [
+      32,
+      128,
+      3,
+      3
+    ],
+    "image_encoder.features.denseblock1.denselayer3.norm1.weight": [
+      128
+    ],
+    "image_encoder.features.denseblock1.denselayer3.norm1.bias": [
+      128
+    ],
+    "image_encoder.features.denseblock1.denselayer3.norm1.running_mean": [
+      128
+    ],
+    "image_encoder.features.denseblock1.denselayer3.norm1.running_var": [
+      128
+    ],
+    "image_encoder.features.denseblock1.denselayer3.norm1.num_batches_tracked": [],
+    "image_encoder.features.denseblock1.denselayer3.conv1.weight": [
+      128,
+      128,
+      1,
+      1
+    ],
+    "image_encoder.features.denseblock1.denselayer3.norm2.weight": [
+      128
+    ],
+    "image_encoder.features.denseblock1.denselayer3.norm2.bias": [
+      128
+    ],
+    "image_encoder.features.denseblock1.denselayer3.norm2.running_mean": [
+      128
+    ],
+    "image_encoder.features.denseblock1.denselayer3.norm2.running_var": [
+      128
+    ],
+    "image_encoder.features.denseblock1.denselayer3.norm2.num_batches_tracked": [],
+    "image_encoder.features.denseblock1.denselayer3.conv2.weight": [
+      32,
+      128,
+      3,
+      3
+    ],
+    "image_encoder.features.denseblock1.denselayer4.norm1.weight": [
+      160
+    ],
+    "image_encoder.features.denseblock1.denselayer4.norm1.bias": [
+      160
+    ],
+    "image_encoder.features.denseblock1.denselayer4.norm1.running_mean": [
+      160
+    ],
+    "image_encoder.features.denseblock1.denselayer4.norm1.running_var": [
+      160
+    ],
+    "image_encoder.features.denseblock1.denselayer4.norm1.num_batches_tracked": [],
+    "image_encoder.features.denseblock1.denselayer4.conv1.weight": [
+      128,
+      160,
+      1,
+      1
+    ],
+    "image_encoder.features.denseblock1.denselayer4.norm2.weight": [
+      128
+    ],
+    "image_encoder.features.denseblock1.denselayer4.norm2.bias": [
+      128
+    ],
+    "image_encoder.features.denseblock1.denselayer4.norm2.running_mean": [
+      128
+    ],
+    "image_encoder.features.denseblock1.denselayer4.norm2.running_var": [
+      128
+    ],
+    "image_encoder.features.denseblock1.denselayer4.norm2.num_batches_tracked": [],
+    "image_encoder.features.denseblock1.denselayer4.conv2.weight": [
+      32,
+      128,
+      3,
+      3
+    ],
+    "image_encoder.features.denseblock1.denselayer5.norm1.weight": [
+      192
+    ],
+    "image_encoder.features.denseblock1.denselayer5.norm1.bias": [
+      192
+    ],
+    "image_encoder.features.denseblock1.denselayer5.norm1.running_mean": [
+      192
+    ],
+    "image_encoder.features.denseblock1.denselayer5.norm1.running_var": [
+      192
+    ],
+    "image_encoder.features.denseblock1.denselayer5.norm1.num_batches_tracked": [],
+    "image_encoder.features.denseblock1.denselayer5.conv1.weight": [
+      128,
+      192,
+      1,
+      1
+    ],
+    "image_encoder.features.denseblock1.denselayer5.norm2.weight": [
+      128
+    ],
+    "image_encoder.features.denseblock1.denselayer5.norm2.bias": [
+      128
+    ],
+    "image_encoder.features.denseblock1.denselayer5.norm2.running_mean": [
+      128
+    ],
+    "image_encoder.features.denseblock1.denselayer5.norm2.running_var": [
+      128
+    ],
+    "image_encoder.features.denseblock1.denselayer5.norm2.num_batches_tracked": [],
+    "image_encoder.features.denseblock1.denselayer5.conv2.weight": [
+      32,
+      128,
+      3,
+      3
+    ],
+    "image_encoder.features.denseblock1.denselayer6.norm1.weight": [
+      224
+    ],
+    "image_encoder.features.denseblock1.denselayer6.norm1.bias": [
+      224
+    ],
+    "image_encoder.features.denseblock1.denselayer6.norm1.running_mean": [
+      224
+    ],
+    "image_encoder.features.denseblock1.denselayer6.norm1.running_var": [
+      224
+    ],
+    "image_encoder.features.denseblock1.denselayer6.norm1.num_batches_tracked": [],
+    "image_encoder.features.denseblock1.denselayer6.conv1.weight": [
+      128,
+      224,
+      1,
+      1
+    ],
+    "image_encoder.features.denseblock1.denselayer6.norm2.weight": [
+      128
+    ],
+    "image_encoder.features.denseblock1.denselayer6.norm2.bias": [
+      128
+    ],
+    "image_encoder.features.denseblock1.denselayer6.norm2.running_mean": [
+      128
+    ],
+    "image_encoder.features.denseblock1.denselayer6.norm2.running_var": [
+      128
+    ],
+    "image_encoder.features.denseblock1.denselayer6.norm2.num_batches_tracked": [],
+    "image_encoder.features.denseblock1.denselayer6.conv2.weight": [
+      32,
+      128,
+      3,
+      3
+    ],
+    "image_encoder.features.transition1.norm.weight": [
+      256
+    ],
+    "image_encoder.features.transition1.norm.bias": [
+      256
+    ],
+    "image_encoder.features.transition1.norm.running_mean": [
+      256
+    ],
+    "image_encoder.features.transition1.norm.running_var": [
+      256
+    ],
+    "image_encoder.features.transition1.norm.num_batches_tracked": [],
+    "image_encoder.features.transition1.conv.weight": [
+      128,
+      256,
+      1,
+      1
+    ],
+    "image_encoder.features.denseblock2.denselayer1.norm1.weight": [
+      128
+    ],
+    "image_encoder.features.denseblock2.denselayer1.norm1.bias": [
+      128
+    ],
+    "image_encoder.features.denseblock2.denselayer1.norm1.running_mean": [
+      128
+    ],
+    "image_encoder.features.denseblock2.denselayer1.norm1.running_var": [
+      128
+    ],
+    "image_encoder.features.denseblock2.denselayer1.norm1.num_batches_tracked": [],
+    "image_encoder.features.denseblock2.denselayer1.conv1.weight": [
+      128,
+      128,
+      1,
+      1
+    ],
+    "image_encoder.features.denseblock2.denselayer1.norm2.weight": [
+      128
+    ],
+    "image_encoder.features.denseblock2.denselayer1.norm2.bias": [
+      128
+    ],
+    "image_encoder.features.denseblock2.denselayer1.norm2.running_mean": [
+      128
+    ],
+    "image_encoder.features.denseblock2.denselayer1.norm2.running_var": [
+      128
+    ],
+    "image_encoder.features.denseblock2.denselayer1.norm2.num_batches_tracked": [],
+    "image_encoder.features.denseblock2.denselayer1.conv2.weight": [
+      32,
+      128,
+      3,
+      3
+    ],
+    "image_encoder.features.denseblock2.denselayer2.norm1.weight": [
+      160
+    ],
+    "image_encoder.features.denseblock2.denselayer2.norm1.bias": [
+      160
+    ],
+    "image_encoder.features.denseblock2.denselayer2.norm1.running_mean": [
+      160
+    ],
+    "image_encoder.features.denseblock2.denselayer2.norm1.running_var": [
+      160
+    ],
+    "image_encoder.features.denseblock2.denselayer2.norm1.num_batches_tracked": [],
+    "image_encoder.features.denseblock2.denselayer2.conv1.weight": [
+      128,
+      160,
+      1,
+      1
+    ],
+    "image_encoder.features.denseblock2.denselayer2.norm2.weight": [
+      128
+    ],
+    "image_encoder.features.denseblock2.denselayer2.norm2.bias": [
+      128
+    ],
+    "image_encoder.features.denseblock2.denselayer2.norm2.running_mean": [
+      128
+    ],
+    "image_encoder.features.denseblock2.denselayer2.norm2.running_var": [
+      128
+    ],
+    "image_encoder.features.denseblock2.denselayer2.norm2.num_batches_tracked": [],
+    "image_encoder.features.denseblock2.denselayer2.conv2.weight": [
+      32,
+      128,
+      3,
+      3
+    ],
+    "image_encoder.features.denseblock2.denselayer3.norm1.weight": [
+      192
+    ],
+    "image_encoder.features.denseblock2.denselayer3.norm1.bias": [
+      192
+    ],
+    "image_encoder.features.denseblock2.denselayer3.norm1.running_mean": [
+      192
+    ],
+    "image_encoder.features.denseblock2.denselayer3.norm1.running_var": [
+      192
+    ],
+    "image_encoder.features.denseblock2.denselayer3.norm1.num_batches_tracked": [],
+    "image_encoder.features.denseblock2.denselayer3.conv1.weight": [
+      128,
+      192,
+      1,
+      1
+    ],
+    "image_encoder.features.denseblock2.denselayer3.norm2.weight": [
+      128
+    ],
+    "image_encoder.features.denseblock2.denselayer3.norm2.bias": [
+      128
+    ],
+    "image_encoder.features.denseblock2.denselayer3.norm2.running_mean": [
+      128
+    ],
+    "image_encoder.features.denseblock2.denselayer3.norm2.running_var": [
+      128
+    ],
+    "image_encoder.features.denseblock2.denselayer3.norm2.num_batches_tracked": [],
+    "image_encoder.features.denseblock2.denselayer3.conv2.weight": [
+      32,
+      128,
+      3,
+      3
+    ],
+    "image_encoder.features.denseblock2.denselayer4.norm1.weight": [
+      224
+    ],
+    "image_encoder.features.denseblock2.denselayer4.norm1.bias": [
+      224
+    ],
+    "image_encoder.features.denseblock2.denselayer4.norm1.running_mean": [
+      224
+    ],
+    "image_encoder.features.denseblock2.denselayer4.norm1.running_var": [
+      224
+    ],
+    "image_encoder.features.denseblock2.denselayer4.norm1.num_batches_tracked": [],
+    "image_encoder.features.denseblock2.denselayer4.conv1.weight": [
+      128,
+      224,
+      1,
+      1
+    ],
+    "image_encoder.features.denseblock2.denselayer4.norm2.weight": [
+      128
+    ],
+    "image_encoder.features.denseblock2.denselayer4.norm2.bias": [
+      128
+    ],
+    "image_encoder.features.denseblock2.denselayer4.norm2.running_mean": [
+      128
+    ],
+    "image_encoder.features.denseblock2.denselayer4.norm2.running_var": [
+      128
+    ],
+    "image_encoder.features.denseblock2.denselayer4.norm2.num_batches_tracked": [],
+    "image_encoder.features.denseblock2.denselayer4.conv2.weight": [
+      32,
+      128,
+      3,
+      3
+    ],
+    "image_encoder.features.denseblock2.denselayer5.norm1.weight": [
+      256
+    ],
+    "image_encoder.features.denseblock2.denselayer5.norm1.bias": [
+      256
+    ],
+    "image_encoder.features.denseblock2.denselayer5.norm1.running_mean": [
+      256
+    ],
+    "image_encoder.features.denseblock2.denselayer5.norm1.running_var": [
+      256
+    ],
+    "image_encoder.features.denseblock2.denselayer5.norm1.num_batches_tracked": [],
+    "image_encoder.features.denseblock2.denselayer5.conv1.weight": [
+      128,
+      256,
+      1,
+      1
+    ],
+    "image_encoder.features.denseblock2.denselayer5.norm2.weight": [
+      128
+    ],
+    "image_encoder.features.denseblock2.denselayer5.norm2.bias": [
+      128
+    ],
+    "image_encoder.features.denseblock2.denselayer5.norm2.running_mean": [
+      128
+    ],
+    "image_encoder.features.denseblock2.denselayer5.norm2.running_var": [
+      128
+    ],
+    "image_encoder.features.denseblock2.denselayer5.norm2.num_batches_tracked": [],
+    "image_encoder.features.denseblock2.denselayer5.conv2.weight": [
+      32,
+      128,
+      3,
+      3
+    ],
+    "image_encoder.features.denseblock2.denselayer6.norm1.weight": [
+      288
+    ],
+    "image_encoder.features.denseblock2.denselayer6.norm1.bias": [
+      288
+    ],
+    "image_encoder.features.denseblock2.denselayer6.norm1.running_mean": [
+      288
+    ],
+    "image_encoder.features.denseblock2.denselayer6.norm1.running_var": [
+      288
+    ],
+    "image_encoder.features.denseblock2.denselayer6.norm1.num_batches_tracked": [],
+    "image_encoder.features.denseblock2.denselayer6.conv1.weight": [
+      128,
+      288,
+      1,
+      1
+    ],
+    "image_encoder.features.denseblock2.denselayer6.norm2.weight": [
+      128
+    ],
+    "image_encoder.features.denseblock2.denselayer6.norm2.bias": [
+      128
+    ],
+    "image_encoder.features.denseblock2.denselayer6.norm2.running_mean": [
+      128
+    ],
+    "image_encoder.features.denseblock2.denselayer6.norm2.running_var": [
+      128
+    ],
+    "image_encoder.features.denseblock2.denselayer6.norm2.num_batches_tracked": [],
+    "image_encoder.features.denseblock2.denselayer6.conv2.weight": [
+      32,
+      128,
+      3,
+      3
+    ],
+    "image_encoder.features.denseblock2.denselayer7.norm1.weight": [
+      320
+    ],
+    "image_encoder.features.denseblock2.denselayer7.norm1.bias": [
+      320
+    ],
+    "image_encoder.features.denseblock2.denselayer7.norm1.running_mean": [
+      320
+    ],
+    "image_encoder.features.denseblock2.denselayer7.norm1.running_var": [
+      320
+    ],
+    "image_encoder.features.denseblock2.denselayer7.norm1.num_batches_tracked": [],
+    "image_encoder.features.denseblock2.denselayer7.conv1.weight": [
+      128,
+      320,
+      1,
+      1
+    ],
+    "image_encoder.features.denseblock2.denselayer7.norm2.weight": [
+      128
+    ],
+    "image_encoder.features.denseblock2.denselayer7.norm2.bias": [
+      128
+    ],
+    "image_encoder.features.denseblock2.denselayer7.norm2.running_mean": [
+      128
+    ],
+    "image_encoder.features.denseblock2.denselayer7.norm2.running_var": [
+      128
+    ],
+    "image_encoder.features.denseblock2.denselayer7.norm2.num_batches_tracked": [],
+    "image_encoder.features.denseblock2.denselayer7.conv2.weight": [
+      32,
+      128,
+      3,
+      3
+    ],
+    "image_encoder.features.denseblock2.denselayer8.norm1.weight": [
+      352
+    ],
+    "image_encoder.features.denseblock2.denselayer8.norm1.bias": [
+      352
+    ],
+    "image_encoder.features.denseblock2.denselayer8.norm1.running_mean": [
+      352
+    ],
+    "image_encoder.features.denseblock2.denselayer8.norm1.running_var": [
+      352
+    ],
+    "image_encoder.features.denseblock2.denselayer8.norm1.num_batches_tracked": [],
+    "image_encoder.features.denseblock2.denselayer8.conv1.weight": [
+      128,
+      352,
+      1,
+      1
+    ],
+    "image_encoder.features.denseblock2.denselayer8.norm2.weight": [
+      128
+    ],
+    "image_encoder.features.denseblock2.denselayer8.norm2.bias": [
+      128
+    ],
+    "image_encoder.features.denseblock2.denselayer8.norm2.running_mean": [
+      128
+    ],
+    "image_encoder.features.denseblock2.denselayer8.norm2.running_var": [
+      128
+    ],
+    "image_encoder.features.denseblock2.denselayer8.norm2.num_batches_tracked": [],
+    "image_encoder.features.denseblock2.denselayer8.conv2.weight": [
+      32,
+      128,
+      3,
+      3
+    ],
+    "image_encoder.features.denseblock2.denselayer9.norm1.weight": [
+      384
+    ],
+    "image_encoder.features.denseblock2.denselayer9.norm1.bias": [
+      384
+    ],
+    "image_encoder.features.denseblock2.denselayer9.norm1.running_mean": [
+      384
+    ],
+    "image_encoder.features.denseblock2.denselayer9.norm1.running_var": [
+      384
+    ],
+    "image_encoder.features.denseblock2.denselayer9.norm1.num_batches_tracked": [],
+    "image_encoder.features.denseblock2.denselayer9.conv1.weight": [
+      128,
+      384,
+      1,
+      1
+    ],
+    "image_encoder.features.denseblock2.denselayer9.norm2.weight": [
+      128
+    ],
+    "image_encoder.features.denseblock2.denselayer9.norm2.bias": [
+      128
+    ],
+    "image_encoder.features.denseblock2.denselayer9.norm2.running_mean": [
+      128
+    ],
+    "image_encoder.features.denseblock2.denselayer9.norm2.running_var": [
+      128
+    ],
+    "image_encoder.features.denseblock2.denselayer9.norm2.num_batches_tracked": [],
+    "image_encoder.features.denseblock2.denselayer9.conv2.weight": [
+      32,
+      128,
+      3,
+      3
+    ],
+    "image_encoder.features.denseblock2.denselayer10.norm1.weight": [
+      416
+    ],
+    "image_encoder.features.denseblock2.denselayer10.norm1.bias": [
+      416
+    ],
+    "image_encoder.features.denseblock2.denselayer10.norm1.running_mean": [
+      416
+    ],
+    "image_encoder.features.denseblock2.denselayer10.norm1.running_var": [
+      416
+    ],
+    "image_encoder.features.denseblock2.denselayer10.norm1.num_batches_tracked": [],
+    "image_encoder.features.denseblock2.denselayer10.conv1.weight": [
+      128,
+      416,
+      1,
+      1
+    ],
+    "image_encoder.features.denseblock2.denselayer10.norm2.weight": [
+      128
+    ],
+    "image_encoder.features.denseblock2.denselayer10.norm2.bias": [
+      128
+    ],
+    "image_encoder.features.denseblock2.denselayer10.norm2.running_mean": [
+      128
+    ],
+    "image_encoder.features.denseblock2.denselayer10.norm2.running_var": [
+      128
+    ],
+    "image_encoder.features.denseblock2.denselayer10.norm2.num_batches_tracked": [],
+    "image_encoder.features.denseblock2.denselayer10.conv2.weight": [
+      32,
+      128,
+      3,
+      3
+    ],
+    "image_encoder.features.denseblock2.denselayer11.norm1.weight": [
+      448
+    ],
+    "image_encoder.features.denseblock2.denselayer11.norm1.bias": [
+      448
+    ],
+    "image_encoder.features.denseblock2.denselayer11.norm1.running_mean": [
+      448
+    ],
+    "image_encoder.features.denseblock2.denselayer11.norm1.running_var": [
+      448
+    ],
+    "image_encoder.features.denseblock2.denselayer11.norm1.num_batches_tracked": [],
+    "image_encoder.features.denseblock2.denselayer11.conv1.weight": [
+      128,
+      448,
+      1,
+      1
+    ],
+    "image_encoder.features.denseblock2.denselayer11.norm2.weight": [
+      128
+    ],
+    "image_encoder.features.denseblock2.denselayer11.norm2.bias": [
+      128
+    ],
+    "image_encoder.features.denseblock2.denselayer11.norm2.running_mean": [
+      128
+    ],
+    "image_encoder.features.denseblock2.denselayer11.norm2.running_var": [
+      128
+    ],
+    "image_encoder.features.denseblock2.denselayer11.norm2.num_batches_tracked": [],
+    "image_encoder.features.denseblock2.denselayer11.conv2.weight": [
+      32,
+      128,
+      3,
+      3
+    ],
+    "image_encoder.features.denseblock2.denselayer12.norm1.weight": [
+      480
+    ],
+    "image_encoder.features.denseblock2.denselayer12.norm1.bias": [
+      480
+    ],
+    "image_encoder.features.denseblock2.denselayer12.norm1.running_mean": [
+      480
+    ],
+    "image_encoder.features.denseblock2.denselayer12.norm1.running_var": [
+      480
+    ],
+    "image_encoder.features.denseblock2.denselayer12.norm1.num_batches_tracked": [],
+    "image_encoder.features.denseblock2.denselayer12.conv1.weight": [
+      128,
+      480,
+      1,
+      1
+    ],
+    "image_encoder.features.denseblock2.denselayer12.norm2.weight": [
+      128
+    ],
+    "image_encoder.features.denseblock2.denselayer12.norm2.bias": [
+      128
+    ],
+    "image_encoder.features.denseblock2.denselayer12.norm2.running_mean": [
+      128
+    ],
+    "image_encoder.features.denseblock2.denselayer12.norm2.running_var": [
+      128
+    ],
+    "image_encoder.features.denseblock2.denselayer12.norm2.num_batches_tracked": [],
+    "image_encoder.features.denseblock2.denselayer12.conv2.weight": [
+      32,
+      128,
+      3,
+      3
+    ],
+    "image_encoder.features.transition2.norm.weight": [
+      512
+    ],
+    "image_encoder.features.transition2.norm.bias": [
+      512
+    ],
+    "image_encoder.features.transition2.norm.running_mean": [
+      512
+    ],
+    "image_encoder.features.transition2.norm.running_var": [
+      512
+    ],
+    "image_encoder.features.transition2.norm.num_batches_tracked": [],
+    "image_encoder.features.transition2.conv.weight": [
+      256,
+      512,
+      1,
+      1
+    ],
+    "image_encoder.features.denseblock3.denselayer1.norm1.weight": [
+      256
+    ],
+    "image_encoder.features.denseblock3.denselayer1.norm1.bias": [
+      256
+    ],
+    "image_encoder.features.denseblock3.denselayer1.norm1.running_mean": [
+      256
+    ],
+    "image_encoder.features.denseblock3.denselayer1.norm1.running_var": [
+      256
+    ],
+    "image_encoder.features.denseblock3.denselayer1.norm1.num_batches_tracked": [],
+    "image_encoder.features.denseblock3.denselayer1.conv1.weight": [
+      128,
+      256,
+      1,
+      1
+    ],
+    "image_encoder.features.denseblock3.denselayer1.norm2.weight": [
+      128
+    ],
+    "image_encoder.features.denseblock3.denselayer1.norm2.bias": [
+      128
+    ],
+    "image_encoder.features.denseblock3.denselayer1.norm2.running_mean": [
+      128
+    ],
+    "image_encoder.features.denseblock3.denselayer1.norm2.running_var": [
+      128
+    ],
+    "image_encoder.features.denseblock3.denselayer1.norm2.num_batches_tracked": [],
+    "image_encoder.features.denseblock3.denselayer1.conv2.weight": [
+      32,
+      128,
+      3,
+      3
+    ],
+    "image_encoder.features.denseblock3.denselayer2.norm1.weight": [
+      288
+    ],
+    "image_encoder.features.denseblock3.denselayer2.norm1.bias": [
+      288
+    ],
+    "image_encoder.features.denseblock3.denselayer2.norm1.running_mean": [
+      288
+    ],
+    "image_encoder.features.denseblock3.denselayer2.norm1.running_var": [
+      288
+    ],
+    "image_encoder.features.denseblock3.denselayer2.norm1.num_batches_tracked": [],
+    "image_encoder.features.denseblock3.denselayer2.conv1.weight": [
+      128,
+      288,
+      1,
+      1
+    ],
+    "image_encoder.features.denseblock3.denselayer2.norm2.weight": [
+      128
+    ],
+    "image_encoder.features.denseblock3.denselayer2.norm2.bias": [
+      128
+    ],
+    "image_encoder.features.denseblock3.denselayer2.norm2.running_mean": [
+      128
+    ],
+    "image_encoder.features.denseblock3.denselayer2.norm2.running_var": [
+      128
+    ],
+    "image_encoder.features.denseblock3.denselayer2.norm2.num_batches_tracked": [],
+    "image_encoder.features.denseblock3.denselayer2.conv2.weight": [
+      32,
+      128,
+      3,
+      3
+    ],
+    "image_encoder.features.denseblock3.denselayer3.norm1.weight": [
+      320
+    ],
+    "image_encoder.features.denseblock3.denselayer3.norm1.bias": [
+      320
+    ],
+    "image_encoder.features.denseblock3.denselayer3.norm1.running_mean": [
+      320
+    ],
+    "image_encoder.features.denseblock3.denselayer3.norm1.running_var": [
+      320
+    ],
+    "image_encoder.features.denseblock3.denselayer3.norm1.num_batches_tracked": [],
+    "image_encoder.features.denseblock3.denselayer3.conv1.weight": [
+      128,
+      320,
+      1,
+      1
+    ],
+    "image_encoder.features.denseblock3.denselayer3.norm2.weight": [
+      128
+    ],
+    "image_encoder.features.denseblock3.denselayer3.norm2.bias": [
+      128
+    ],
+    "image_encoder.features.denseblock3.denselayer3.norm2.running_mean": [
+      128
+    ],
+    "image_encoder.features.denseblock3.denselayer3.norm2.running_var": [
+      128
+    ],
+    "image_encoder.features.denseblock3.denselayer3.norm2.num_batches_tracked": [],
+    "image_encoder.features.denseblock3.denselayer3.conv2.weight": [
+      32,
+      128,
+      3,
+      3
+    ],
+    "image_encoder.features.denseblock3.denselayer4.norm1.weight": [
+      352
+    ],
+    "image_encoder.features.denseblock3.denselayer4.norm1.bias": [
+      352
+    ],
+    "image_encoder.features.denseblock3.denselayer4.norm1.running_mean": [
+      352
+    ],
+    "image_encoder.features.denseblock3.denselayer4.norm1.running_var": [
+      352
+    ],
+    "image_encoder.features.denseblock3.denselayer4.norm1.num_batches_tracked": [],
+    "image_encoder.features.denseblock3.denselayer4.conv1.weight": [
+      128,
+      352,
+      1,
+      1
+    ],
+    "image_encoder.features.denseblock3.denselayer4.norm2.weight": [
+      128
+    ],
+    "image_encoder.features.denseblock3.denselayer4.norm2.bias": [
+      128
+    ],
+    "image_encoder.features.denseblock3.denselayer4.norm2.running_mean": [
+      128
+    ],
+    "image_encoder.features.denseblock3.denselayer4.norm2.running_var": [
+      128
+    ],
+    "image_encoder.features.denseblock3.denselayer4.norm2.num_batches_tracked": [],
+    "image_encoder.features.denseblock3.denselayer4.conv2.weight": [
+      32,
+      128,
+      3,
+      3
+    ],
+    "image_encoder.features.denseblock3.denselayer5.norm1.weight": [
+      384
+    ],
+    "image_encoder.features.denseblock3.denselayer5.norm1.bias": [
+      384
+    ],
+    "image_encoder.features.denseblock3.denselayer5.norm1.running_mean": [
+      384
+    ],
+    "image_encoder.features.denseblock3.denselayer5.norm1.running_var": [
+      384
+    ],
+    "image_encoder.features.denseblock3.denselayer5.norm1.num_batches_tracked": [],
+    "image_encoder.features.denseblock3.denselayer5.conv1.weight": [
+      128,
+      384,
+      1,
+      1
+    ],
+    "image_encoder.features.denseblock3.denselayer5.norm2.weight": [
+      128
+    ],
+    "image_encoder.features.denseblock3.denselayer5.norm2.bias": [
+      128
+    ],
+    "image_encoder.features.denseblock3.denselayer5.norm2.running_mean": [
+      128
+    ],
+    "image_encoder.features.denseblock3.denselayer5.norm2.running_var": [
+      128
+    ],
+    "image_encoder.features.denseblock3.denselayer5.norm2.num_batches_tracked": [],
+    "image_encoder.features.denseblock3.denselayer5.conv2.weight": [
+      32,
+      128,
+      3,
+      3
+    ],
+    "image_encoder.features.denseblock3.denselayer6.norm1.weight": [
+      416
+    ],
+    "image_encoder.features.denseblock3.denselayer6.norm1.bias": [
+      416
+    ],
+    "image_encoder.features.denseblock3.denselayer6.norm1.running_mean": [
+      416
+    ],
+    "image_encoder.features.denseblock3.denselayer6.norm1.running_var": [
+      416
+    ],
+    "image_encoder.features.denseblock3.denselayer6.norm1.num_batches_tracked": [],
+    "image_encoder.features.denseblock3.denselayer6.conv1.weight": [
+      128,
+      416,
+      1,
+      1
+    ],
+    "image_encoder.features.denseblock3.denselayer6.norm2.weight": [
+      128
+    ],
+    "image_encoder.features.denseblock3.denselayer6.norm2.bias": [
+      128
+    ],
+    "image_encoder.features.denseblock3.denselayer6.norm2.running_mean": [
+      128
+    ],
+    "image_encoder.features.denseblock3.denselayer6.norm2.running_var": [
+      128
+    ],
+    "image_encoder.features.denseblock3.denselayer6.norm2.num_batches_tracked": [],
+    "image_encoder.features.denseblock3.denselayer6.conv2.weight": [
+      32,
+      128,
+      3,
+      3
+    ],
+    "image_encoder.features.denseblock3.denselayer7.norm1.weight": [
+      448
+    ],
+    "image_encoder.features.denseblock3.denselayer7.norm1.bias": [
+      448
+    ],
+    "image_encoder.features.denseblock3.denselayer7.norm1.running_mean": [
+      448
+    ],
+    "image_encoder.features.denseblock3.denselayer7.norm1.running_var": [
+      448
+    ],
+    "image_encoder.features.denseblock3.denselayer7.norm1.num_batches_tracked": [],
+    "image_encoder.features.denseblock3.denselayer7.conv1.weight": [
+      128,
+      448,
+      1,
+      1
+    ],
+    "image_encoder.features.denseblock3.denselayer7.norm2.weight": [
+      128
+    ],
+    "image_encoder.features.denseblock3.denselayer7.norm2.bias": [
+      128
+    ],
+    "image_encoder.features.denseblock3.denselayer7.norm2.running_mean": [
+      128
+    ],
+    "image_encoder.features.denseblock3.denselayer7.norm2.running_var": [
+      128
+    ],
+    "image_encoder.features.denseblock3.denselayer7.norm2.num_batches_tracked": [],
+    "image_encoder.features.denseblock3.denselayer7.conv2.weight": [
+      32,
+      128,
+      3,
+      3
+    ],
+    "image_encoder.features.denseblock3.denselayer8.norm1.weight": [
+      480
+    ],
+    "image_encoder.features.denseblock3.denselayer8.norm1.bias": [
+      480
+    ],
+    "image_encoder.features.denseblock3.denselayer8.norm1.running_mean": [
+      480
+    ],
+    "image_encoder.features.denseblock3.denselayer8.norm1.running_var": [
+      480
+    ],
+    "image_encoder.features.denseblock3.denselayer8.norm1.num_batches_tracked": [],
+    "image_encoder.features.denseblock3.denselayer8.conv1.weight": [
+      128,
+      480,
+      1,
+      1
+    ],
+    "image_encoder.features.denseblock3.denselayer8.norm2.weight": [
+      128
+    ],
+    "image_encoder.features.denseblock3.denselayer8.norm2.bias": [
+      128
+    ],
+    "image_encoder.features.denseblock3.denselayer8.norm2.running_mean": [
+      128
+    ],
+    "image_encoder.features.denseblock3.denselayer8.norm2.running_var": [
+      128
+    ],
+    "image_encoder.features.denseblock3.denselayer8.norm2.num_batches_tracked": [],
+    "image_encoder.features.denseblock3.denselayer8.conv2.weight": [
+      32,
+      128,
+      3,
+      3
+    ],
+    "image_encoder.features.denseblock3.denselayer9.norm1.weight": [
+      512
+    ],
+    "image_encoder.features.denseblock3.denselayer9.norm1.bias": [
+      512
+    ],
+    "image_encoder.features.denseblock3.denselayer9.norm1.running_mean": [
+      512
+    ],
+    "image_encoder.features.denseblock3.denselayer9.norm1.running_var": [
+      512
+    ],
+    "image_encoder.features.denseblock3.denselayer9.norm1.num_batches_tracked": [],
+    "image_encoder.features.denseblock3.denselayer9.conv1.weight": [
+      128,
+      512,
+      1,
+      1
+    ],
+    "image_encoder.features.denseblock3.denselayer9.norm2.weight": [
+      128
+    ],
+    "image_encoder.features.denseblock3.denselayer9.norm2.bias": [
+      128
+    ],
+    "image_encoder.features.denseblock3.denselayer9.norm2.running_mean": [
+      128
+    ],
+    "image_encoder.features.denseblock3.denselayer9.norm2.running_var": [
+      128
+    ],
+    "image_encoder.features.denseblock3.denselayer9.norm2.num_batches_tracked": [],
+    "image_encoder.features.denseblock3.denselayer9.conv2.weight": [
+      32,
+      128,
+      3,
+      3
+    ],
+    "image_encoder.features.denseblock3.denselayer10.norm1.weight": [
+      544
+    ],
+    "image_encoder.features.denseblock3.denselayer10.norm1.bias": [
+      544
+    ],
+    "image_encoder.features.denseblock3.denselayer10.norm1.running_mean": [
+      544
+    ],
+    "image_encoder.features.denseblock3.denselayer10.norm1.running_var": [
+      544
+    ],
+    "image_encoder.features.denseblock3.denselayer10.norm1.num_batches_tracked": [],
+    "image_encoder.features.denseblock3.denselayer10.conv1.weight": [
+      128,
+      544,
+      1,
+      1
+    ],
+    "image_encoder.features.denseblock3.denselayer10.norm2.weight": [
+      128
+    ],
+    "image_encoder.features.denseblock3.denselayer10.norm2.bias": [
+      128
+    ],
+    "image_encoder.features.denseblock3.denselayer10.norm2.running_mean": [
+      128
+    ],
+    "image_encoder.features.denseblock3.denselayer10.norm2.running_var": [
+      128
+    ],
+    "image_encoder.features.denseblock3.denselayer10.norm2.num_batches_tracked": [],
+    "image_encoder.features.denseblock3.denselayer10.conv2.weight": [
+      32,
+      128,
+      3,
+      3
+    ],
+    "image_encoder.features.denseblock3.denselayer11.norm1.weight": [
+      576
+    ],
+    "image_encoder.features.denseblock3.denselayer11.norm1.bias": [
+      576
+    ],
+    "image_encoder.features.denseblock3.denselayer11.norm1.running_mean": [
+      576
+    ],
+    "image_encoder.features.denseblock3.denselayer11.norm1.running_var": [
+      576
+    ],
+    "image_encoder.features.denseblock3.denselayer11.norm1.num_batches_tracked": [],
+    "image_encoder.features.denseblock3.denselayer11.conv1.weight": [
+      128,
+      576,
+      1,
+      1
+    ],
+    "image_encoder.features.denseblock3.denselayer11.norm2.weight": [
+      128
+    ],
+    "image_encoder.features.denseblock3.denselayer11.norm2.bias": [
+      128
+    ],
+    "image_encoder.features.denseblock3.denselayer11.norm2.running_mean": [
+      128
+    ],
+    "image_encoder.features.denseblock3.denselayer11.norm2.running_var": [
+      128
+    ],
+    "image_encoder.features.denseblock3.denselayer11.norm2.num_batches_tracked": [],
+    "image_encoder.features.denseblock3.denselayer11.conv2.weight": [
+      32,
+      128,
+      3,
+      3
+    ],
+    "image_encoder.features.denseblock3.denselayer12.norm1.weight": [
+      608
+    ],
+    "image_encoder.features.denseblock3.denselayer12.norm1.bias": [
+      608
+    ],
+    "image_encoder.features.denseblock3.denselayer12.norm1.running_mean": [
+      608
+    ],
+    "image_encoder.features.denseblock3.denselayer12.norm1.running_var": [
+      608
+    ],
+    "image_encoder.features.denseblock3.denselayer12.norm1.num_batches_tracked": [],
+    "image_encoder.features.denseblock3.denselayer12.conv1.weight": [
+      128,
+      608,
+      1,
+      1
+    ],
+    "image_encoder.features.denseblock3.denselayer12.norm2.weight": [
+      128
+    ],
+    "image_encoder.features.denseblock3.denselayer12.norm2.bias": [
+      128
+    ],
+    "image_encoder.features.denseblock3.denselayer12.norm2.running_mean": [
+      128
+    ],
+    "image_encoder.features.denseblock3.denselayer12.norm2.running_var": [
+      128
+    ],
+    "image_encoder.features.denseblock3.denselayer12.norm2.num_batches_tracked": [],
+    "image_encoder.features.denseblock3.denselayer12.conv2.weight": [
+      32,
+      128,
+      3,
+      3
+    ],
+    "image_encoder.features.denseblock3.denselayer13.norm1.weight": [
+      640
+    ],
+    "image_encoder.features.denseblock3.denselayer13.norm1.bias": [
+      640
+    ],
+    "image_encoder.features.denseblock3.denselayer13.norm1.running_mean": [
+      640
+    ],
+    "image_encoder.features.denseblock3.denselayer13.norm1.running_var": [
+      640
+    ],
+    "image_encoder.features.denseblock3.denselayer13.norm1.num_batches_tracked": [],
+    "image_encoder.features.denseblock3.denselayer13.conv1.weight": [
+      128,
+      640,
+      1,
+      1
+    ],
+    "image_encoder.features.denseblock3.denselayer13.norm2.weight": [
+      128
+    ],
+    "image_encoder.features.denseblock3.denselayer13.norm2.bias": [
+      128
+    ],
+    "image_encoder.features.denseblock3.denselayer13.norm2.running_mean": [
+      128
+    ],
+    "image_encoder.features.denseblock3.denselayer13.norm2.running_var": [
+      128
+    ],
+    "image_encoder.features.denseblock3.denselayer13.norm2.num_batches_tracked": [],
+    "image_encoder.features.denseblock3.denselayer13.conv2.weight": [
+      32,
+      128,
+      3,
+      3
+    ],
+    "image_encoder.features.denseblock3.denselayer14.norm1.weight": [
+      672
+    ],
+    "image_encoder.features.denseblock3.denselayer14.norm1.bias": [
+      672
+    ],
+    "image_encoder.features.denseblock3.denselayer14.norm1.running_mean": [
+      672
+    ],
+    "image_encoder.features.denseblock3.denselayer14.norm1.running_var": [
+      672
+    ],
+    "image_encoder.features.denseblock3.denselayer14.norm1.num_batches_tracked": [],
+    "image_encoder.features.denseblock3.denselayer14.conv1.weight": [
+      128,
+      672,
+      1,
+      1
+    ],
+    "image_encoder.features.denseblock3.denselayer14.norm2.weight": [
+      128
+    ],
+    "image_encoder.features.denseblock3.denselayer14.norm2.bias": [
+      128
+    ],
+    "image_encoder.features.denseblock3.denselayer14.norm2.running_mean": [
+      128
+    ],
+    "image_encoder.features.denseblock3.denselayer14.norm2.running_var": [
+      128
+    ],
+    "image_encoder.features.denseblock3.denselayer14.norm2.num_batches_tracked": [],
+    "image_encoder.features.denseblock3.denselayer14.conv2.weight": [
+      32,
+      128,
+      3,
+      3
+    ],
+    "image_encoder.features.denseblock3.denselayer15.norm1.weight": [
+      704
+    ],
+    "image_encoder.features.denseblock3.denselayer15.norm1.bias": [
+      704
+    ],
+    "image_encoder.features.denseblock3.denselayer15.norm1.running_mean": [
+      704
+    ],
+    "image_encoder.features.denseblock3.denselayer15.norm1.running_var": [
+      704
+    ],
+    "image_encoder.features.denseblock3.denselayer15.norm1.num_batches_tracked": [],
+    "image_encoder.features.denseblock3.denselayer15.conv1.weight": [
+      128,
+      704,
+      1,
+      1
+    ],
+    "image_encoder.features.denseblock3.denselayer15.norm2.weight": [
+      128
+    ],
+    "image_encoder.features.denseblock3.denselayer15.norm2.bias": [
+      128
+    ],
+    "image_encoder.features.denseblock3.denselayer15.norm2.running_mean": [
+      128
+    ],
+    "image_encoder.features.denseblock3.denselayer15.norm2.running_var": [
+      128
+    ],
+    "image_encoder.features.denseblock3.denselayer15.norm2.num_batches_tracked": [],
+    "image_encoder.features.denseblock3.denselayer15.conv2.weight": [
+      32,
+      128,
+      3,
+      3
+    ],
+    "image_encoder.features.denseblock3.denselayer16.norm1.weight": [
+      736
+    ],
+    "image_encoder.features.denseblock3.denselayer16.norm1.bias": [
+      736
+    ],
+    "image_encoder.features.denseblock3.denselayer16.norm1.running_mean": [
+      736
+    ],
+    "image_encoder.features.denseblock3.denselayer16.norm1.running_var": [
+      736
+    ],
+    "image_encoder.features.denseblock3.denselayer16.norm1.num_batches_tracked": [],
+    "image_encoder.features.denseblock3.denselayer16.conv1.weight": [
+      128,
+      736,
+      1,
+      1
+    ],
+    "image_encoder.features.denseblock3.denselayer16.norm2.weight": [
+      128
+    ],
+    "image_encoder.features.denseblock3.denselayer16.norm2.bias": [
+      128
+    ],
+    "image_encoder.features.denseblock3.denselayer16.norm2.running_mean": [
+      128
+    ],
+    "image_encoder.features.denseblock3.denselayer16.norm2.running_var": [
+      128
+    ],
+    "image_encoder.features.denseblock3.denselayer16.norm2.num_batches_tracked": [],
+    "image_encoder.features.denseblock3.denselayer16.conv2.weight": [
+      32,
+      128,
+      3,
+      3
+    ],
+    "image_encoder.features.denseblock3.denselayer17.norm1.weight": [
+      768
+    ],
+    "image_encoder.features.denseblock3.denselayer17.norm1.bias": [
+      768
+    ],
+    "image_encoder.features.denseblock3.denselayer17.norm1.running_mean": [
+      768
+    ],
+    "image_encoder.features.denseblock3.denselayer17.norm1.running_var": [
+      768
+    ],
+    "image_encoder.features.denseblock3.denselayer17.norm1.num_batches_tracked": [],
+    "image_encoder.features.denseblock3.denselayer17.conv1.weight": [
+      128,
+      768,
+      1,
+      1
+    ],
+    "image_encoder.features.denseblock3.denselayer17.norm2.weight": [
+      128
+    ],
+    "image_encoder.features.denseblock3.denselayer17.norm2.bias": [
+      128
+    ],
+    "image_encoder.features.denseblock3.denselayer17.norm2.running_mean": [
+      128
+    ],
+    "image_encoder.features.denseblock3.denselayer17.norm2.running_var": [
+      128
+    ],
+    "image_encoder.features.denseblock3.denselayer17.norm2.num_batches_tracked": [],
+    "image_encoder.features.denseblock3.denselayer17.conv2.weight": [
+      32,
+      128,
+      3,
+      3
+    ],
+    "image_encoder.features.denseblock3.denselayer18.norm1.weight": [
+      800
+    ],
+    "image_encoder.features.denseblock3.denselayer18.norm1.bias": [
+      800
+    ],
+    "image_encoder.features.denseblock3.denselayer18.norm1.running_mean": [
+      800
+    ],
+    "image_encoder.features.denseblock3.denselayer18.norm1.running_var": [
+      800
+    ],
+    "image_encoder.features.denseblock3.denselayer18.norm1.num_batches_tracked": [],
+    "image_encoder.features.denseblock3.denselayer18.conv1.weight": [
+      128,
+      800,
+      1,
+      1
+    ],
+    "image_encoder.features.denseblock3.denselayer18.norm2.weight": [
+      128
+    ],
+    "image_encoder.features.denseblock3.denselayer18.norm2.bias": [
+      128
+    ],
+    "image_encoder.features.denseblock3.denselayer18.norm2.running_mean": [
+      128
+    ],
+    "image_encoder.features.denseblock3.denselayer18.norm2.running_var": [
+      128
+    ],
+    "image_encoder.features.denseblock3.denselayer18.norm2.num_batches_tracked": [],
+    "image_encoder.features.denseblock3.denselayer18.conv2.weight": [
+      32,
+      128,
+      3,
+      3
+    ],
+    "image_encoder.features.denseblock3.denselayer19.norm1.weight": [
+      832
+    ],
+    "image_encoder.features.denseblock3.denselayer19.norm1.bias": [
+      832
+    ],
+    "image_encoder.features.denseblock3.denselayer19.norm1.running_mean": [
+      832
+    ],
+    "image_encoder.features.denseblock3.denselayer19.norm1.running_var": [
+      832
+    ],
+    "image_encoder.features.denseblock3.denselayer19.norm1.num_batches_tracked": [],
+    "image_encoder.features.denseblock3.denselayer19.conv1.weight": [
+      128,
+      832,
+      1,
+      1
+    ],
+    "image_encoder.features.denseblock3.denselayer19.norm2.weight": [
+      128
+    ],
+    "image_encoder.features.denseblock3.denselayer19.norm2.bias": [
+      128
+    ],
+    "image_encoder.features.denseblock3.denselayer19.norm2.running_mean": [
+      128
+    ],
+    "image_encoder.features.denseblock3.denselayer19.norm2.running_var": [
+      128
+    ],
+    "image_encoder.features.denseblock3.denselayer19.norm2.num_batches_tracked": [],
+    "image_encoder.features.denseblock3.denselayer19.conv2.weight": [
+      32,
+      128,
+      3,
+      3
+    ],
+    "image_encoder.features.denseblock3.denselayer20.norm1.weight": [
+      864
+    ],
+    "image_encoder.features.denseblock3.denselayer20.norm1.bias": [
+      864
+    ],
+    "image_encoder.features.denseblock3.denselayer20.norm1.running_mean": [
+      864
+    ],
+    "image_encoder.features.denseblock3.denselayer20.norm1.running_var": [
+      864
+    ],
+    "image_encoder.features.denseblock3.denselayer20.norm1.num_batches_tracked": [],
+    "image_encoder.features.denseblock3.denselayer20.conv1.weight": [
+      128,
+      864,
+      1,
+      1
+    ],
+    "image_encoder.features.denseblock3.denselayer20.norm2.weight": [
+      128
+    ],
+    "image_encoder.features.denseblock3.denselayer20.norm2.bias": [
+      128
+    ],
+    "image_encoder.features.denseblock3.denselayer20.norm2.running_mean": [
+      128
+    ],
+    "image_encoder.features.denseblock3.denselayer20.norm2.running_var": [
+      128
+    ],
+    "image_encoder.features.denseblock3.denselayer20.norm2.num_batches_tracked": [],
+    "image_encoder.features.denseblock3.denselayer20.conv2.weight": [
+      32,
+      128,
+      3,
+      3
+    ],
+    "image_encoder.features.denseblock3.denselayer21.norm1.weight": [
+      896
+    ],
+    "image_encoder.features.denseblock3.denselayer21.norm1.bias": [
+      896
+    ],
+    "image_encoder.features.denseblock3.denselayer21.norm1.running_mean": [
+      896
+    ],
+    "image_encoder.features.denseblock3.denselayer21.norm1.running_var": [
+      896
+    ],
+    "image_encoder.features.denseblock3.denselayer21.norm1.num_batches_tracked": [],
+    "image_encoder.features.denseblock3.denselayer21.conv1.weight": [
+      128,
+      896,
+      1,
+      1
+    ],
+    "image_encoder.features.denseblock3.denselayer21.norm2.weight": [
+      128
+    ],
+    "image_encoder.features.denseblock3.denselayer21.norm2.bias": [
+      128
+    ],
+    "image_encoder.features.denseblock3.denselayer21.norm2.running_mean": [
+      128
+    ],
+    "image_encoder.features.denseblock3.denselayer21.norm2.running_var": [
+      128
+    ],
+    "image_encoder.features.denseblock3.denselayer21.norm2.num_batches_tracked": [],
+    "image_encoder.features.denseblock3.denselayer21.conv2.weight": [
+      32,
+      128,
+      3,
+      3
+    ],
+    "image_encoder.features.denseblock3.denselayer22.norm1.weight": [
+      928
+    ],
+    "image_encoder.features.denseblock3.denselayer22.norm1.bias": [
+      928
+    ],
+    "image_encoder.features.denseblock3.denselayer22.norm1.running_mean": [
+      928
+    ],
+    "image_encoder.features.denseblock3.denselayer22.norm1.running_var": [
+      928
+    ],
+    "image_encoder.features.denseblock3.denselayer22.norm1.num_batches_tracked": [],
+    "image_encoder.features.denseblock3.denselayer22.conv1.weight": [
+      128,
+      928,
+      1,
+      1
+    ],
+    "image_encoder.features.denseblock3.denselayer22.norm2.weight": [
+      128
+    ],
+    "image_encoder.features.denseblock3.denselayer22.norm2.bias": [
+      128
+    ],
+    "image_encoder.features.denseblock3.denselayer22.norm2.running_mean": [
+      128
+    ],
+    "image_encoder.features.denseblock3.denselayer22.norm2.running_var": [
+      128
+    ],
+    "image_encoder.features.denseblock3.denselayer22.norm2.num_batches_tracked": [],
+    "image_encoder.features.denseblock3.denselayer22.conv2.weight": [
+      32,
+      128,
+      3,
+      3
+    ],
+    "image_encoder.features.denseblock3.denselayer23.norm1.weight": [
+      960
+    ],
+    "image_encoder.features.denseblock3.denselayer23.norm1.bias": [
+      960
+    ],
+    "image_encoder.features.denseblock3.denselayer23.norm1.running_mean": [
+      960
+    ],
+    "image_encoder.features.denseblock3.denselayer23.norm1.running_var": [
+      960
+    ],
+    "image_encoder.features.denseblock3.denselayer23.norm1.num_batches_tracked": [],
+    "image_encoder.features.denseblock3.denselayer23.conv1.weight": [
+      128,
+      960,
+      1,
+      1
+    ],
+    "image_encoder.features.denseblock3.denselayer23.norm2.weight": [
+      128
+    ],
+    "image_encoder.features.denseblock3.denselayer23.norm2.bias": [
+      128
+    ],
+    "image_encoder.features.denseblock3.denselayer23.norm2.running_mean": [
+      128
+    ],
+    "image_encoder.features.denseblock3.denselayer23.norm2.running_var": [
+      128
+    ],
+    "image_encoder.features.denseblock3.denselayer23.norm2.num_batches_tracked": [],
+    "image_encoder.features.denseblock3.denselayer23.conv2.weight": [
+      32,
+      128,
+      3,
+      3
+    ],
+    "image_encoder.features.denseblock3.denselayer24.norm1.weight": [
+      992
+    ],
+    "image_encoder.features.denseblock3.denselayer24.norm1.bias": [
+      992
+    ],
+    "image_encoder.features.denseblock3.denselayer24.norm1.running_mean": [
+      992
+    ],
+    "image_encoder.features.denseblock3.denselayer24.norm1.running_var": [
+      992
+    ],
+    "image_encoder.features.denseblock3.denselayer24.norm1.num_batches_tracked": [],
+    "image_encoder.features.denseblock3.denselayer24.conv1.weight": [
+      128,
+      992,
+      1,
+      1
+    ],
+    "image_encoder.features.denseblock3.denselayer24.norm2.weight": [
+      128
+    ],
+    "image_encoder.features.denseblock3.denselayer24.norm2.bias": [
+      128
+    ],
+    "image_encoder.features.denseblock3.denselayer24.norm2.running_mean": [
+      128
+    ],
+    "image_encoder.features.denseblock3.denselayer24.norm2.running_var": [
+      128
+    ],
+    "image_encoder.features.denseblock3.denselayer24.norm2.num_batches_tracked": [],
+    "image_encoder.features.denseblock3.denselayer24.conv2.weight": [
+      32,
+      128,
+      3,
+      3
+    ],
+    "image_encoder.features.denseblock3.denselayer25.norm1.weight": [
+      1024
+    ],
+    "image_encoder.features.denseblock3.denselayer25.norm1.bias": [
+      1024
+    ],
+    "image_encoder.features.denseblock3.denselayer25.norm1.running_mean": [
+      1024
+    ],
+    "image_encoder.features.denseblock3.denselayer25.norm1.running_var": [
+      1024
+    ],
+    "image_encoder.features.denseblock3.denselayer25.norm1.num_batches_tracked": [],
+    "image_encoder.features.denseblock3.denselayer25.conv1.weight": [
+      128,
+      1024,
+      1,
+      1
+    ],
+    "image_encoder.features.denseblock3.denselayer25.norm2.weight": [
+      128
+    ],
+    "image_encoder.features.denseblock3.denselayer25.norm2.bias": [
+      128
+    ],
+    "image_encoder.features.denseblock3.denselayer25.norm2.running_mean": [
+      128
+    ],
+    "image_encoder.features.denseblock3.denselayer25.norm2.running_var": [
+      128
+    ],
+    "image_encoder.features.denseblock3.denselayer25.norm2.num_batches_tracked": [],
+    "image_encoder.features.denseblock3.denselayer25.conv2.weight": [
+      32,
+      128,
+      3,
+      3
+    ],
+    "image_encoder.features.denseblock3.denselayer26.norm1.weight": [
+      1056
+    ],
+    "image_encoder.features.denseblock3.denselayer26.norm1.bias": [
+      1056
+    ],
+    "image_encoder.features.denseblock3.denselayer26.norm1.running_mean": [
+      1056
+    ],
+    "image_encoder.features.denseblock3.denselayer26.norm1.running_var": [
+      1056
+    ],
+    "image_encoder.features.denseblock3.denselayer26.norm1.num_batches_tracked": [],
+    "image_encoder.features.denseblock3.denselayer26.conv1.weight": [
+      128,
+      1056,
+      1,
+      1
+    ],
+    "image_encoder.features.denseblock3.denselayer26.norm2.weight": [
+      128
+    ],
+    "image_encoder.features.denseblock3.denselayer26.norm2.bias": [
+      128
+    ],
+    "image_encoder.features.denseblock3.denselayer26.norm2.running_mean": [
+      128
+    ],
+    "image_encoder.features.denseblock3.denselayer26.norm2.running_var": [
+      128
+    ],
+    "image_encoder.features.denseblock3.denselayer26.norm2.num_batches_tracked": [],
+    "image_encoder.features.denseblock3.denselayer26.conv2.weight": [
+      32,
+      128,
+      3,
+      3
+    ],
+    "image_encoder.features.denseblock3.denselayer27.norm1.weight": [
+      1088
+    ],
+    "image_encoder.features.denseblock3.denselayer27.norm1.bias": [
+      1088
+    ],
+    "image_encoder.features.denseblock3.denselayer27.norm1.running_mean": [
+      1088
+    ],
+    "image_encoder.features.denseblock3.denselayer27.norm1.running_var": [
+      1088
+    ],
+    "image_encoder.features.denseblock3.denselayer27.norm1.num_batches_tracked": [],
+    "image_encoder.features.denseblock3.denselayer27.conv1.weight": [
+      128,
+      1088,
+      1,
+      1
+    ],
+    "image_encoder.features.denseblock3.denselayer27.norm2.weight": [
+      128
+    ],
+    "image_encoder.features.denseblock3.denselayer27.norm2.bias": [
+      128
+    ],
+    "image_encoder.features.denseblock3.denselayer27.norm2.running_mean": [
+      128
+    ],
+    "image_encoder.features.denseblock3.denselayer27.norm2.running_var": [
+      128
+    ],
+    "image_encoder.features.denseblock3.denselayer27.norm2.num_batches_tracked": [],
+    "image_encoder.features.denseblock3.denselayer27.conv2.weight": [
+      32,
+      128,
+      3,
+      3
+    ],
+    "image_encoder.features.denseblock3.denselayer28.norm1.weight": [
+      1120
+    ],
+    "image_encoder.features.denseblock3.denselayer28.norm1.bias": [
+      1120
+    ],
+    "image_encoder.features.denseblock3.denselayer28.norm1.running_mean": [
+      1120
+    ],
+    "image_encoder.features.denseblock3.denselayer28.norm1.running_var": [
+      1120
+    ],
+    "image_encoder.features.denseblock3.denselayer28.norm1.num_batches_tracked": [],
+    "image_encoder.features.denseblock3.denselayer28.conv1.weight": [
+      128,
+      1120,
+      1,
+      1
+    ],
+    "image_encoder.features.denseblock3.denselayer28.norm2.weight": [
+      128
+    ],
+    "image_encoder.features.denseblock3.denselayer28.norm2.bias": [
+      128
+    ],
+    "image_encoder.features.denseblock3.denselayer28.norm2.running_mean": [
+      128
+    ],
+    "image_encoder.features.denseblock3.denselayer28.norm2.running_var": [
+      128
+    ],
+    "image_encoder.features.denseblock3.denselayer28.norm2.num_batches_tracked": [],
+    "image_encoder.features.denseblock3.denselayer28.conv2.weight": [
+      32,
+      128,
+      3,
+      3
+    ],
+    "image_encoder.features.denseblock3.denselayer29.norm1.weight": [
+      1152
+    ],
+    "image_encoder.features.denseblock3.denselayer29.norm1.bias": [
+      1152
+    ],
+    "image_encoder.features.denseblock3.denselayer29.norm1.running_mean": [
+      1152
+    ],
+    "image_encoder.features.denseblock3.denselayer29.norm1.running_var": [
+      1152
+    ],
+    "image_encoder.features.denseblock3.denselayer29.norm1.num_batches_tracked": [],
+    "image_encoder.features.denseblock3.denselayer29.conv1.weight": [
+      128,
+      1152,
+      1,
+      1
+    ],
+    "image_encoder.features.denseblock3.denselayer29.norm2.weight": [
+      128
+    ],
+    "image_encoder.features.denseblock3.denselayer29.norm2.bias": [
+      128
+    ],
+    "image_encoder.features.denseblock3.denselayer29.norm2.running_mean": [
+      128
+    ],
+    "image_encoder.features.denseblock3.denselayer29.norm2.running_var": [
+      128
+    ],
+    "image_encoder.features.denseblock3.denselayer29.norm2.num_batches_tracked": [],
+    "image_encoder.features.denseblock3.denselayer29.conv2.weight": [
+      32,
+      128,
+      3,
+      3
+    ],
+    "image_encoder.features.denseblock3.denselayer30.norm1.weight": [
+      1184
+    ],
+    "image_encoder.features.denseblock3.denselayer30.norm1.bias": [
+      1184
+    ],
+    "image_encoder.features.denseblock3.denselayer30.norm1.running_mean": [
+      1184
+    ],
+    "image_encoder.features.denseblock3.denselayer30.norm1.running_var": [
+      1184
+    ],
+    "image_encoder.features.denseblock3.denselayer30.norm1.num_batches_tracked": [],
+    "image_encoder.features.denseblock3.denselayer30.conv1.weight": [
+      128,
+      1184,
+      1,
+      1
+    ],
+    "image_encoder.features.denseblock3.denselayer30.norm2.weight": [
+      128
+    ],
+    "image_encoder.features.denseblock3.denselayer30.norm2.bias": [
+      128
+    ],
+    "image_encoder.features.denseblock3.denselayer30.norm2.running_mean": [
+      128
+    ],
+    "image_encoder.features.denseblock3.denselayer30.norm2.running_var": [
+      128
+    ],
+    "image_encoder.features.denseblock3.denselayer30.norm2.num_batches_tracked": [],
+    "image_encoder.features.denseblock3.denselayer30.conv2.weight": [
+      32,
+      128,
+      3,
+      3
+    ],
+    "image_encoder.features.denseblock3.denselayer31.norm1.weight": [
+      1216
+    ],
+    "image_encoder.features.denseblock3.denselayer31.norm1.bias": [
+      1216
+    ],
+    "image_encoder.features.denseblock3.denselayer31.norm1.running_mean": [
+      1216
+    ],
+    "image_encoder.features.denseblock3.denselayer31.norm1.running_var": [
+      1216
+    ],
+    "image_encoder.features.denseblock3.denselayer31.norm1.num_batches_tracked": [],
+    "image_encoder.features.denseblock3.denselayer31.conv1.weight": [
+      128,
+      1216,
+      1,
+      1
+    ],
+    "image_encoder.features.denseblock3.denselayer31.norm2.weight": [
+      128
+    ],
+    "image_encoder.features.denseblock3.denselayer31.norm2.bias": [
+      128
+    ],
+    "image_encoder.features.denseblock3.denselayer31.norm2.running_mean": [
+      128
+    ],
+    "image_encoder.features.denseblock3.denselayer31.norm2.running_var": [
+      128
+    ],
+    "image_encoder.features.denseblock3.denselayer31.norm2.num_batches_tracked": [],
+    "image_encoder.features.denseblock3.denselayer31.conv2.weight": [
+      32,
+      128,
+      3,
+      3
+    ],
+    "image_encoder.features.denseblock3.denselayer32.norm1.weight": [
+      1248
+    ],
+    "image_encoder.features.denseblock3.denselayer32.norm1.bias": [
+      1248
+    ],
+    "image_encoder.features.denseblock3.denselayer32.norm1.running_mean": [
+      1248
+    ],
+    "image_encoder.features.denseblock3.denselayer32.norm1.running_var": [
+      1248
+    ],
+    "image_encoder.features.denseblock3.denselayer32.norm1.num_batches_tracked": [],
+    "image_encoder.features.denseblock3.denselayer32.conv1.weight": [
+      128,
+      1248,
+      1,
+      1
+    ],
+    "image_encoder.features.denseblock3.denselayer32.norm2.weight": [
+      128
+    ],
+    "image_encoder.features.denseblock3.denselayer32.norm2.bias": [
+      128
+    ],
+    "image_encoder.features.denseblock3.denselayer32.norm2.running_mean": [
+      128
+    ],
+    "image_encoder.features.denseblock3.denselayer32.norm2.running_var": [
+      128
+    ],
+    "image_encoder.features.denseblock3.denselayer32.norm2.num_batches_tracked": [],
+    "image_encoder.features.denseblock3.denselayer32.conv2.weight": [
+      32,
+      128,
+      3,
+      3
+    ],
+    "image_encoder.features.transition3.norm.weight": [
+      1280
+    ],
+    "image_encoder.features.transition3.norm.bias": [
+      1280
+    ],
+    "image_encoder.features.transition3.norm.running_mean": [
+      1280
+    ],
+    "image_encoder.features.transition3.norm.running_var": [
+      1280
+    ],
+    "image_encoder.features.transition3.norm.num_batches_tracked": [],
+    "image_encoder.features.transition3.conv.weight": [
+      640,
+      1280,
+      1,
+      1
+    ],
+    "image_encoder.features.denseblock4.denselayer1.norm1.weight": [
+      640
+    ],
+    "image_encoder.features.denseblock4.denselayer1.norm1.bias": [
+      640
+    ],
+    "image_encoder.features.denseblock4.denselayer1.norm1.running_mean": [
+      640
+    ],
+    "image_encoder.features.denseblock4.denselayer1.norm1.running_var": [
+      640
+    ],
+    "image_encoder.features.denseblock4.denselayer1.norm1.num_batches_tracked": [],
+    "image_encoder.features.denseblock4.denselayer1.conv1.weight": [
+      128,
+      640,
+      1,
+      1
+    ],
+    "image_encoder.features.denseblock4.denselayer1.norm2.weight": [
+      128
+    ],
+    "image_encoder.features.denseblock4.denselayer1.norm2.bias": [
+      128
+    ],
+    "image_encoder.features.denseblock4.denselayer1.norm2.running_mean": [
+      128
+    ],
+    "image_encoder.features.denseblock4.denselayer1.norm2.running_var": [
+      128
+    ],
+    "image_encoder.features.denseblock4.denselayer1.norm2.num_batches_tracked": [],
+    "image_encoder.features.denseblock4.denselayer1.conv2.weight": [
+      32,
+      128,
+      3,
+      3
+    ],
+    "image_encoder.features.denseblock4.denselayer2.norm1.weight": [
+      672
+    ],
+    "image_encoder.features.denseblock4.denselayer2.norm1.bias": [
+      672
+    ],
+    "image_encoder.features.denseblock4.denselayer2.norm1.running_mean": [
+      672
+    ],
+    "image_encoder.features.denseblock4.denselayer2.norm1.running_var": [
+      672
+    ],
+    "image_encoder.features.denseblock4.denselayer2.norm1.num_batches_tracked": [],
+    "image_encoder.features.denseblock4.denselayer2.conv1.weight": [
+      128,
+      672,
+      1,
+      1
+    ],
+    "image_encoder.features.denseblock4.denselayer2.norm2.weight": [
+      128
+    ],
+    "image_encoder.features.denseblock4.denselayer2.norm2.bias": [
+      128
+    ],
+    "image_encoder.features.denseblock4.denselayer2.norm2.running_mean": [
+      128
+    ],
+    "image_encoder.features.denseblock4.denselayer2.norm2.running_var": [
+      128
+    ],
+    "image_encoder.features.denseblock4.denselayer2.norm2.num_batches_tracked": [],
+    "image_encoder.features.denseblock4.denselayer2.conv2.weight": [
+      32,
+      128,
+      3,
+      3
+    ],
+    "image_encoder.features.denseblock4.denselayer3.norm1.weight": [
+      704
+    ],
+    "image_encoder.features.denseblock4.denselayer3.norm1.bias": [
+      704
+    ],
+    "image_encoder.features.denseblock4.denselayer3.norm1.running_mean": [
+      704
+    ],
+    "image_encoder.features.denseblock4.denselayer3.norm1.running_var": [
+      704
+    ],
+    "image_encoder.features.denseblock4.denselayer3.norm1.num_batches_tracked": [],
+    "image_encoder.features.denseblock4.denselayer3.conv1.weight": [
+      128,
+      704,
+      1,
+      1
+    ],
+    "image_encoder.features.denseblock4.denselayer3.norm2.weight": [
+      128
+    ],
+    "image_encoder.features.denseblock4.denselayer3.norm2.bias": [
+      128
+    ],
+    "image_encoder.features.denseblock4.denselayer3.norm2.running_mean": [
+      128
+    ],
+    "image_encoder.features.denseblock4.denselayer3.norm2.running_var": [
+      128
+    ],
+    "image_encoder.features.denseblock4.denselayer3.norm2.num_batches_tracked": [],
+    "image_encoder.features.denseblock4.denselayer3.conv2.weight": [
+      32,
+      128,
+      3,
+      3
+    ],
+    "image_encoder.features.denseblock4.denselayer4.norm1.weight": [
+      736
+    ],
+    "image_encoder.features.denseblock4.denselayer4.norm1.bias": [
+      736
+    ],
+    "image_encoder.features.denseblock4.denselayer4.norm1.running_mean": [
+      736
+    ],
+    "image_encoder.features.denseblock4.denselayer4.norm1.running_var": [
+      736
+    ],
+    "image_encoder.features.denseblock4.denselayer4.norm1.num_batches_tracked": [],
+    "image_encoder.features.denseblock4.denselayer4.conv1.weight": [
+      128,
+      736,
+      1,
+      1
+    ],
+    "image_encoder.features.denseblock4.denselayer4.norm2.weight": [
+      128
+    ],
+    "image_encoder.features.denseblock4.denselayer4.norm2.bias": [
+      128
+    ],
+    "image_encoder.features.denseblock4.denselayer4.norm2.running_mean": [
+      128
+    ],
+    "image_encoder.features.denseblock4.denselayer4.norm2.running_var": [
+      128
+    ],
+    "image_encoder.features.denseblock4.denselayer4.norm2.num_batches_tracked": [],
+    "image_encoder.features.denseblock4.denselayer4.conv2.weight": [
+      32,
+      128,
+      3,
+      3
+    ],
+    "image_encoder.features.denseblock4.denselayer5.norm1.weight": [
+      768
+    ],
+    "image_encoder.features.denseblock4.denselayer5.norm1.bias": [
+      768
+    ],
+    "image_encoder.features.denseblock4.denselayer5.norm1.running_mean": [
+      768
+    ],
+    "image_encoder.features.denseblock4.denselayer5.norm1.running_var": [
+      768
+    ],
+    "image_encoder.features.denseblock4.denselayer5.norm1.num_batches_tracked": [],
+    "image_encoder.features.denseblock4.denselayer5.conv1.weight": [
+      128,
+      768,
+      1,
+      1
+    ],
+    "image_encoder.features.denseblock4.denselayer5.norm2.weight": [
+      128
+    ],
+    "image_encoder.features.denseblock4.denselayer5.norm2.bias": [
+      128
+    ],
+    "image_encoder.features.denseblock4.denselayer5.norm2.running_mean": [
+      128
+    ],
+    "image_encoder.features.denseblock4.denselayer5.norm2.running_var": [
+      128
+    ],
+    "image_encoder.features.denseblock4.denselayer5.norm2.num_batches_tracked": [],
+    "image_encoder.features.denseblock4.denselayer5.conv2.weight": [
+      32,
+      128,
+      3,
+      3
+    ],
+    "image_encoder.features.denseblock4.denselayer6.norm1.weight": [
+      800
+    ],
+    "image_encoder.features.denseblock4.denselayer6.norm1.bias": [
+      800
+    ],
+    "image_encoder.features.denseblock4.denselayer6.norm1.running_mean": [
+      800
+    ],
+    "image_encoder.features.denseblock4.denselayer6.norm1.running_var": [
+      800
+    ],
+    "image_encoder.features.denseblock4.denselayer6.norm1.num_batches_tracked": [],
+    "image_encoder.features.denseblock4.denselayer6.conv1.weight": [
+      128,
+      800,
+      1,
+      1
+    ],
+    "image_encoder.features.denseblock4.denselayer6.norm2.weight": [
+      128
+    ],
+    "image_encoder.features.denseblock4.denselayer6.norm2.bias": [
+      128
+    ],
+    "image_encoder.features.denseblock4.denselayer6.norm2.running_mean": [
+      128
+    ],
+    "image_encoder.features.denseblock4.denselayer6.norm2.running_var": [
+      128
+    ],
+    "image_encoder.features.denseblock4.denselayer6.norm2.num_batches_tracked": [],
+    "image_encoder.features.denseblock4.denselayer6.conv2.weight": [
+      32,
+      128,
+      3,
+      3
+    ],
+    "image_encoder.features.denseblock4.denselayer7.norm1.weight": [
+      832
+    ],
+    "image_encoder.features.denseblock4.denselayer7.norm1.bias": [
+      832
+    ],
+    "image_encoder.features.denseblock4.denselayer7.norm1.running_mean": [
+      832
+    ],
+    "image_encoder.features.denseblock4.denselayer7.norm1.running_var": [
+      832
+    ],
+    "image_encoder.features.denseblock4.denselayer7.norm1.num_batches_tracked": [],
+    "image_encoder.features.denseblock4.denselayer7.conv1.weight": [
+      128,
+      832,
+      1,
+      1
+    ],
+    "image_encoder.features.denseblock4.denselayer7.norm2.weight": [
+      128
+    ],
+    "image_encoder.features.denseblock4.denselayer7.norm2.bias": [
+      128
+    ],
+    "image_encoder.features.denseblock4.denselayer7.norm2.running_mean": [
+      128
+    ],
+    "image_encoder.features.denseblock4.denselayer7.norm2.running_var": [
+      128
+    ],
+    "image_encoder.features.denseblock4.denselayer7.norm2.num_batches_tracked": [],
+    "image_encoder.features.denseblock4.denselayer7.conv2.weight": [
+      32,
+      128,
+      3,
+      3
+    ],
+    "image_encoder.features.denseblock4.denselayer8.norm1.weight": [
+      864
+    ],
+    "image_encoder.features.denseblock4.denselayer8.norm1.bias": [
+      864
+    ],
+    "image_encoder.features.denseblock4.denselayer8.norm1.running_mean": [
+      864
+    ],
+    "image_encoder.features.denseblock4.denselayer8.norm1.running_var": [
+      864
+    ],
+    "image_encoder.features.denseblock4.denselayer8.norm1.num_batches_tracked": [],
+    "image_encoder.features.denseblock4.denselayer8.conv1.weight": [
+      128,
+      864,
+      1,
+      1
+    ],
+    "image_encoder.features.denseblock4.denselayer8.norm2.weight": [
+      128
+    ],
+    "image_encoder.features.denseblock4.denselayer8.norm2.bias": [
+      128
+    ],
+    "image_encoder.features.denseblock4.denselayer8.norm2.running_mean": [
+      128
+    ],
+    "image_encoder.features.denseblock4.denselayer8.norm2.running_var": [
+      128
+    ],
+    "image_encoder.features.denseblock4.denselayer8.norm2.num_batches_tracked": [],
+    "image_encoder.features.denseblock4.denselayer8.conv2.weight": [
+      32,
+      128,
+      3,
+      3
+    ],
+    "image_encoder.features.denseblock4.denselayer9.norm1.weight": [
+      896
+    ],
+    "image_encoder.features.denseblock4.denselayer9.norm1.bias": [
+      896
+    ],
+    "image_encoder.features.denseblock4.denselayer9.norm1.running_mean": [
+      896
+    ],
+    "image_encoder.features.denseblock4.denselayer9.norm1.running_var": [
+      896
+    ],
+    "image_encoder.features.denseblock4.denselayer9.norm1.num_batches_tracked": [],
+    "image_encoder.features.denseblock4.denselayer9.conv1.weight": [
+      128,
+      896,
+      1,
+      1
+    ],
+    "image_encoder.features.denseblock4.denselayer9.norm2.weight": [
+      128
+    ],
+    "image_encoder.features.denseblock4.denselayer9.norm2.bias": [
+      128
+    ],
+    "image_encoder.features.denseblock4.denselayer9.norm2.running_mean": [
+      128
+    ],
+    "image_encoder.features.denseblock4.denselayer9.norm2.running_var": [
+      128
+    ],
+    "image_encoder.features.denseblock4.denselayer9.norm2.num_batches_tracked": [],
+    "image_encoder.features.denseblock4.denselayer9.conv2.weight": [
+      32,
+      128,
+      3,
+      3
+    ],
+    "image_encoder.features.denseblock4.denselayer10.norm1.weight": [
+      928
+    ],
+    "image_encoder.features.denseblock4.denselayer10.norm1.bias": [
+      928
+    ],
+    "image_encoder.features.denseblock4.denselayer10.norm1.running_mean": [
+      928
+    ],
+    "image_encoder.features.denseblock4.denselayer10.norm1.running_var": [
+      928
+    ],
+    "image_encoder.features.denseblock4.denselayer10.norm1.num_batches_tracked": [],
+    "image_encoder.features.denseblock4.denselayer10.conv1.weight": [
+      128,
+      928,
+      1,
+      1
+    ],
+    "image_encoder.features.denseblock4.denselayer10.norm2.weight": [
+      128
+    ],
+    "image_encoder.features.denseblock4.denselayer10.norm2.bias": [
+      128
+    ],
+    "image_encoder.features.denseblock4.denselayer10.norm2.running_mean": [
+      128
+    ],
+    "image_encoder.features.denseblock4.denselayer10.norm2.running_var": [
+      128
+    ],
+    "image_encoder.features.denseblock4.denselayer10.norm2.num_batches_tracked": [],
+    "image_encoder.features.denseblock4.denselayer10.conv2.weight": [
+      32,
+      128,
+      3,
+      3
+    ],
+    "image_encoder.features.denseblock4.denselayer11.norm1.weight": [
+      960
+    ],
+    "image_encoder.features.denseblock4.denselayer11.norm1.bias": [
+      960
+    ],
+    "image_encoder.features.denseblock4.denselayer11.norm1.running_mean": [
+      960
+    ],
+    "image_encoder.features.denseblock4.denselayer11.norm1.running_var": [
+      960
+    ],
+    "image_encoder.features.denseblock4.denselayer11.norm1.num_batches_tracked": [],
+    "image_encoder.features.denseblock4.denselayer11.conv1.weight": [
+      128,
+      960,
+      1,
+      1
+    ],
+    "image_encoder.features.denseblock4.denselayer11.norm2.weight": [
+      128
+    ],
+    "image_encoder.features.denseblock4.denselayer11.norm2.bias": [
+      128
+    ],
+    "image_encoder.features.denseblock4.denselayer11.norm2.running_mean": [
+      128
+    ],
+    "image_encoder.features.denseblock4.denselayer11.norm2.running_var": [
+      128
+    ],
+    "image_encoder.features.denseblock4.denselayer11.norm2.num_batches_tracked": [],
+    "image_encoder.features.denseblock4.denselayer11.conv2.weight": [
+      32,
+      128,
+      3,
+      3
+    ],
+    "image_encoder.features.denseblock4.denselayer12.norm1.weight": [
+      992
+    ],
+    "image_encoder.features.denseblock4.denselayer12.norm1.bias": [
+      992
+    ],
+    "image_encoder.features.denseblock4.denselayer12.norm1.running_mean": [
+      992
+    ],
+    "image_encoder.features.denseblock4.denselayer12.norm1.running_var": [
+      992
+    ],
+    "image_encoder.features.denseblock4.denselayer12.norm1.num_batches_tracked": [],
+    "image_encoder.features.denseblock4.denselayer12.conv1.weight": [
+      128,
+      992,
+      1,
+      1
+    ],
+    "image_encoder.features.denseblock4.denselayer12.norm2.weight": [
+      128
+    ],
+    "image_encoder.features.denseblock4.denselayer12.norm2.bias": [
+      128
+    ],
+    "image_encoder.features.denseblock4.denselayer12.norm2.running_mean": [
+      128
+    ],
+    "image_encoder.features.denseblock4.denselayer12.norm2.running_var": [
+      128
+    ],
+    "image_encoder.features.denseblock4.denselayer12.norm2.num_batches_tracked": [],
+    "image_encoder.features.denseblock4.denselayer12.conv2.weight": [
+      32,
+      128,
+      3,
+      3
+    ],
+    "image_encoder.features.denseblock4.denselayer13.norm1.weight": [
+      1024
+    ],
+    "image_encoder.features.denseblock4.denselayer13.norm1.bias": [
+      1024
+    ],
+    "image_encoder.features.denseblock4.denselayer13.norm1.running_mean": [
+      1024
+    ],
+    "image_encoder.features.denseblock4.denselayer13.norm1.running_var": [
+      1024
+    ],
+    "image_encoder.features.denseblock4.denselayer13.norm1.num_batches_tracked": [],
+    "image_encoder.features.denseblock4.denselayer13.conv1.weight": [
+      128,
+      1024,
+      1,
+      1
+    ],
+    "image_encoder.features.denseblock4.denselayer13.norm2.weight": [
+      128
+    ],
+    "image_encoder.features.denseblock4.denselayer13.norm2.bias": [
+      128
+    ],
+    "image_encoder.features.denseblock4.denselayer13.norm2.running_mean": [
+      128
+    ],
+    "image_encoder.features.denseblock4.denselayer13.norm2.running_var": [
+      128
+    ],
+    "image_encoder.features.denseblock4.denselayer13.norm2.num_batches_tracked": [],
+    "image_encoder.features.denseblock4.denselayer13.conv2.weight": [
+      32,
+      128,
+      3,
+      3
+    ],
+    "image_encoder.features.denseblock4.denselayer14.norm1.weight": [
+      1056
+    ],
+    "image_encoder.features.denseblock4.denselayer14.norm1.bias": [
+      1056
+    ],
+    "image_encoder.features.denseblock4.denselayer14.norm1.running_mean": [
+      1056
+    ],
+    "image_encoder.features.denseblock4.denselayer14.norm1.running_var": [
+      1056
+    ],
+    "image_encoder.features.denseblock4.denselayer14.norm1.num_batches_tracked": [],
+    "image_encoder.features.denseblock4.denselayer14.conv1.weight": [
+      128,
+      1056,
+      1,
+      1
+    ],
+    "image_encoder.features.denseblock4.denselayer14.norm2.weight": [
+      128
+    ],
+    "image_encoder.features.denseblock4.denselayer14.norm2.bias": [
+      128
+    ],
+    "image_encoder.features.denseblock4.denselayer14.norm2.running_mean": [
+      128
+    ],
+    "image_encoder.features.denseblock4.denselayer14.norm2.running_var": [
+      128
+    ],
+    "image_encoder.features.denseblock4.denselayer14.norm2.num_batches_tracked": [],
+    "image_encoder.features.denseblock4.denselayer14.conv2.weight": [
+      32,
+      128,
+      3,
+      3
+    ],
+    "image_encoder.features.denseblock4.denselayer15.norm1.weight": [
+      1088
+    ],
+    "image_encoder.features.denseblock4.denselayer15.norm1.bias": [
+      1088
+    ],
+    "image_encoder.features.denseblock4.denselayer15.norm1.running_mean": [
+      1088
+    ],
+    "image_encoder.features.denseblock4.denselayer15.norm1.running_var": [
+      1088
+    ],
+    "image_encoder.features.denseblock4.denselayer15.norm1.num_batches_tracked": [],
+    "image_encoder.features.denseblock4.denselayer15.conv1.weight": [
+      128,
+      1088,
+      1,
+      1
+    ],
+    "image_encoder.features.denseblock4.denselayer15.norm2.weight": [
+      128
+    ],
+    "image_encoder.features.denseblock4.denselayer15.norm2.bias": [
+      128
+    ],
+    "image_encoder.features.denseblock4.denselayer15.norm2.running_mean": [
+      128
+    ],
+    "image_encoder.features.denseblock4.denselayer15.norm2.running_var": [
+      128
+    ],
+    "image_encoder.features.denseblock4.denselayer15.norm2.num_batches_tracked": [],
+    "image_encoder.features.denseblock4.denselayer15.conv2.weight": [
+      32,
+      128,
+      3,
+      3
+    ],
+    "image_encoder.features.denseblock4.denselayer16.norm1.weight": [
+      1120
+    ],
+    "image_encoder.features.denseblock4.denselayer16.norm1.bias": [
+      1120
+    ],
+    "image_encoder.features.denseblock4.denselayer16.norm1.running_mean": [
+      1120
+    ],
+    "image_encoder.features.denseblock4.denselayer16.norm1.running_var": [
+      1120
+    ],
+    "image_encoder.features.denseblock4.denselayer16.norm1.num_batches_tracked": [],
+    "image_encoder.features.denseblock4.denselayer16.conv1.weight": [
+      128,
+      1120,
+      1,
+      1
+    ],
+    "image_encoder.features.denseblock4.denselayer16.norm2.weight": [
+      128
+    ],
+    "image_encoder.features.denseblock4.denselayer16.norm2.bias": [
+      128
+    ],
+    "image_encoder.features.denseblock4.denselayer16.norm2.running_mean": [
+      128
+    ],
+    "image_encoder.features.denseblock4.denselayer16.norm2.running_var": [
+      128
+    ],
+    "image_encoder.features.denseblock4.denselayer16.norm2.num_batches_tracked": [],
+    "image_encoder.features.denseblock4.denselayer16.conv2.weight": [
+      32,
+      128,
+      3,
+      3
+    ],
+    "image_encoder.features.denseblock4.denselayer17.norm1.weight": [
+      1152
+    ],
+    "image_encoder.features.denseblock4.denselayer17.norm1.bias": [
+      1152
+    ],
+    "image_encoder.features.denseblock4.denselayer17.norm1.running_mean": [
+      1152
+    ],
+    "image_encoder.features.denseblock4.denselayer17.norm1.running_var": [
+      1152
+    ],
+    "image_encoder.features.denseblock4.denselayer17.norm1.num_batches_tracked": [],
+    "image_encoder.features.denseblock4.denselayer17.conv1.weight": [
+      128,
+      1152,
+      1,
+      1
+    ],
+    "image_encoder.features.denseblock4.denselayer17.norm2.weight": [
+      128
+    ],
+    "image_encoder.features.denseblock4.denselayer17.norm2.bias": [
+      128
+    ],
+    "image_encoder.features.denseblock4.denselayer17.norm2.running_mean": [
+      128
+    ],
+    "image_encoder.features.denseblock4.denselayer17.norm2.running_var": [
+      128
+    ],
+    "image_encoder.features.denseblock4.denselayer17.norm2.num_batches_tracked": [],
+    "image_encoder.features.denseblock4.denselayer17.conv2.weight": [
+      32,
+      128,
+      3,
+      3
+    ],
+    "image_encoder.features.denseblock4.denselayer18.norm1.weight": [
+      1184
+    ],
+    "image_encoder.features.denseblock4.denselayer18.norm1.bias": [
+      1184
+    ],
+    "image_encoder.features.denseblock4.denselayer18.norm1.running_mean": [
+      1184
+    ],
+    "image_encoder.features.denseblock4.denselayer18.norm1.running_var": [
+      1184
+    ],
+    "image_encoder.features.denseblock4.denselayer18.norm1.num_batches_tracked": [],
+    "image_encoder.features.denseblock4.denselayer18.conv1.weight": [
+      128,
+      1184,
+      1,
+      1
+    ],
+    "image_encoder.features.denseblock4.denselayer18.norm2.weight": [
+      128
+    ],
+    "image_encoder.features.denseblock4.denselayer18.norm2.bias": [
+      128
+    ],
+    "image_encoder.features.denseblock4.denselayer18.norm2.running_mean": [
+      128
+    ],
+    "image_encoder.features.denseblock4.denselayer18.norm2.running_var": [
+      128
+    ],
+    "image_encoder.features.denseblock4.denselayer18.norm2.num_batches_tracked": [],
+    "image_encoder.features.denseblock4.denselayer18.conv2.weight": [
+      32,
+      128,
+      3,
+      3
+    ],
+    "image_encoder.features.denseblock4.denselayer19.norm1.weight": [
+      1216
+    ],
+    "image_encoder.features.denseblock4.denselayer19.norm1.bias": [
+      1216
+    ],
+    "image_encoder.features.denseblock4.denselayer19.norm1.running_mean": [
+      1216
+    ],
+    "image_encoder.features.denseblock4.denselayer19.norm1.running_var": [
+      1216
+    ],
+    "image_encoder.features.denseblock4.denselayer19.norm1.num_batches_tracked": [],
+    "image_encoder.features.denseblock4.denselayer19.conv1.weight": [
+      128,
+      1216,
+      1,
+      1
+    ],
+    "image_encoder.features.denseblock4.denselayer19.norm2.weight": [
+      128
+    ],
+    "image_encoder.features.denseblock4.denselayer19.norm2.bias": [
+      128
+    ],
+    "image_encoder.features.denseblock4.denselayer19.norm2.running_mean": [
+      128
+    ],
+    "image_encoder.features.denseblock4.denselayer19.norm2.running_var": [
+      128
+    ],
+    "image_encoder.features.denseblock4.denselayer19.norm2.num_batches_tracked": [],
+    "image_encoder.features.denseblock4.denselayer19.conv2.weight": [
+      32,
+      128,
+      3,
+      3
+    ],
+    "image_encoder.features.denseblock4.denselayer20.norm1.weight": [
+      1248
+    ],
+    "image_encoder.features.denseblock4.denselayer20.norm1.bias": [
+      1248
+    ],
+    "image_encoder.features.denseblock4.denselayer20.norm1.running_mean": [
+      1248
+    ],
+    "image_encoder.features.denseblock4.denselayer20.norm1.running_var": [
+      1248
+    ],
+    "image_encoder.features.denseblock4.denselayer20.norm1.num_batches_tracked": [],
+    "image_encoder.features.denseblock4.denselayer20.conv1.weight": [
+      128,
+      1248,
+      1,
+      1
+    ],
+    "image_encoder.features.denseblock4.denselayer20.norm2.weight": [
+      128
+    ],
+    "image_encoder.features.denseblock4.denselayer20.norm2.bias": [
+      128
+    ],
+    "image_encoder.features.denseblock4.denselayer20.norm2.running_mean": [
+      128
+    ],
+    "image_encoder.features.denseblock4.denselayer20.norm2.running_var": [
+      128
+    ],
+    "image_encoder.features.denseblock4.denselayer20.norm2.num_batches_tracked": [],
+    "image_encoder.features.denseblock4.denselayer20.conv2.weight": [
+      32,
+      128,
+      3,
+      3
+    ],
+    "image_encoder.features.denseblock4.denselayer21.norm1.weight": [
+      1280
+    ],
+    "image_encoder.features.denseblock4.denselayer21.norm1.bias": [
+      1280
+    ],
+    "image_encoder.features.denseblock4.denselayer21.norm1.running_mean": [
+      1280
+    ],
+    "image_encoder.features.denseblock4.denselayer21.norm1.running_var": [
+      1280
+    ],
+    "image_encoder.features.denseblock4.denselayer21.norm1.num_batches_tracked": [],
+    "image_encoder.features.denseblock4.denselayer21.conv1.weight": [
+      128,
+      1280,
+      1,
+      1
+    ],
+    "image_encoder.features.denseblock4.denselayer21.norm2.weight": [
+      128
+    ],
+    "image_encoder.features.denseblock4.denselayer21.norm2.bias": [
+      128
+    ],
+    "image_encoder.features.denseblock4.denselayer21.norm2.running_mean": [
+      128
+    ],
+    "image_encoder.features.denseblock4.denselayer21.norm2.running_var": [
+      128
+    ],
+    "image_encoder.features.denseblock4.denselayer21.norm2.num_batches_tracked": [],
+    "image_encoder.features.denseblock4.denselayer21.conv2.weight": [
+      32,
+      128,
+      3,
+      3
+    ],
+    "image_encoder.features.denseblock4.denselayer22.norm1.weight": [
+      1312
+    ],
+    "image_encoder.features.denseblock4.denselayer22.norm1.bias": [
+      1312
+    ],
+    "image_encoder.features.denseblock4.denselayer22.norm1.running_mean": [
+      1312
+    ],
+    "image_encoder.features.denseblock4.denselayer22.norm1.running_var": [
+      1312
+    ],
+    "image_encoder.features.denseblock4.denselayer22.norm1.num_batches_tracked": [],
+    "image_encoder.features.denseblock4.denselayer22.conv1.weight": [
+      128,
+      1312,
+      1,
+      1
+    ],
+    "image_encoder.features.denseblock4.denselayer22.norm2.weight": [
+      128
+    ],
+    "image_encoder.features.denseblock4.denselayer22.norm2.bias": [
+      128
+    ],
+    "image_encoder.features.denseblock4.denselayer22.norm2.running_mean": [
+      128
+    ],
+    "image_encoder.features.denseblock4.denselayer22.norm2.running_var": [
+      128
+    ],
+    "image_encoder.features.denseblock4.denselayer22.norm2.num_batches_tracked": [],
+    "image_encoder.features.denseblock4.denselayer22.conv2.weight": [
+      32,
+      128,
+      3,
+      3
+    ],
+    "image_encoder.features.denseblock4.denselayer23.norm1.weight": [
+      1344
+    ],
+    "image_encoder.features.denseblock4.denselayer23.norm1.bias": [
+      1344
+    ],
+    "image_encoder.features.denseblock4.denselayer23.norm1.running_mean": [
+      1344
+    ],
+    "image_encoder.features.denseblock4.denselayer23.norm1.running_var": [
+      1344
+    ],
+    "image_encoder.features.denseblock4.denselayer23.norm1.num_batches_tracked": [],
+    "image_encoder.features.denseblock4.denselayer23.conv1.weight": [
+      128,
+      1344,
+      1,
+      1
+    ],
+    "image_encoder.features.denseblock4.denselayer23.norm2.weight": [
+      128
+    ],
+    "image_encoder.features.denseblock4.denselayer23.norm2.bias": [
+      128
+    ],
+    "image_encoder.features.denseblock4.denselayer23.norm2.running_mean": [
+      128
+    ],
+    "image_encoder.features.denseblock4.denselayer23.norm2.running_var": [
+      128
+    ],
+    "image_encoder.features.denseblock4.denselayer23.norm2.num_batches_tracked": [],
+    "image_encoder.features.denseblock4.denselayer23.conv2.weight": [
+      32,
+      128,
+      3,
+      3
+    ],
+    "image_encoder.features.denseblock4.denselayer24.norm1.weight": [
+      1376
+    ],
+    "image_encoder.features.denseblock4.denselayer24.norm1.bias": [
+      1376
+    ],
+    "image_encoder.features.denseblock4.denselayer24.norm1.running_mean": [
+      1376
+    ],
+    "image_encoder.features.denseblock4.denselayer24.norm1.running_var": [
+      1376
+    ],
+    "image_encoder.features.denseblock4.denselayer24.norm1.num_batches_tracked": [],
+    "image_encoder.features.denseblock4.denselayer24.conv1.weight": [
+      128,
+      1376,
+      1,
+      1
+    ],
+    "image_encoder.features.denseblock4.denselayer24.norm2.weight": [
+      128
+    ],
+    "image_encoder.features.denseblock4.denselayer24.norm2.bias": [
+      128
+    ],
+    "image_encoder.features.denseblock4.denselayer24.norm2.running_mean": [
+      128
+    ],
+    "image_encoder.features.denseblock4.denselayer24.norm2.running_var": [
+      128
+    ],
+    "image_encoder.features.denseblock4.denselayer24.norm2.num_batches_tracked": [],
+    "image_encoder.features.denseblock4.denselayer24.conv2.weight": [
+      32,
+      128,
+      3,
+      3
+    ],
+    "image_encoder.features.denseblock4.denselayer25.norm1.weight": [
+      1408
+    ],
+    "image_encoder.features.denseblock4.denselayer25.norm1.bias": [
+      1408
+    ],
+    "image_encoder.features.denseblock4.denselayer25.norm1.running_mean": [
+      1408
+    ],
+    "image_encoder.features.denseblock4.denselayer25.norm1.running_var": [
+      1408
+    ],
+    "image_encoder.features.denseblock4.denselayer25.norm1.num_batches_tracked": [],
+    "image_encoder.features.denseblock4.denselayer25.conv1.weight": [
+      128,
+      1408,
+      1,
+      1
+    ],
+    "image_encoder.features.denseblock4.denselayer25.norm2.weight": [
+      128
+    ],
+    "image_encoder.features.denseblock4.denselayer25.norm2.bias": [
+      128
+    ],
+    "image_encoder.features.denseblock4.denselayer25.norm2.running_mean": [
+      128
+    ],
+    "image_encoder.features.denseblock4.denselayer25.norm2.running_var": [
+      128
+    ],
+    "image_encoder.features.denseblock4.denselayer25.norm2.num_batches_tracked": [],
+    "image_encoder.features.denseblock4.denselayer25.conv2.weight": [
+      32,
+      128,
+      3,
+      3
+    ],
+    "image_encoder.features.denseblock4.denselayer26.norm1.weight": [
+      1440
+    ],
+    "image_encoder.features.denseblock4.denselayer26.norm1.bias": [
+      1440
+    ],
+    "image_encoder.features.denseblock4.denselayer26.norm1.running_mean": [
+      1440
+    ],
+    "image_encoder.features.denseblock4.denselayer26.norm1.running_var": [
+      1440
+    ],
+    "image_encoder.features.denseblock4.denselayer26.norm1.num_batches_tracked": [],
+    "image_encoder.features.denseblock4.denselayer26.conv1.weight": [
+      128,
+      1440,
+      1,
+      1
+    ],
+    "image_encoder.features.denseblock4.denselayer26.norm2.weight": [
+      128
+    ],
+    "image_encoder.features.denseblock4.denselayer26.norm2.bias": [
+      128
+    ],
+    "image_encoder.features.denseblock4.denselayer26.norm2.running_mean": [
+      128
+    ],
+    "image_encoder.features.denseblock4.denselayer26.norm2.running_var": [
+      128
+    ],
+    "image_encoder.features.denseblock4.denselayer26.norm2.num_batches_tracked": [],
+    "image_encoder.features.denseblock4.denselayer26.conv2.weight": [
+      32,
+      128,
+      3,
+      3
+    ],
+    "image_encoder.features.denseblock4.denselayer27.norm1.weight": [
+      1472
+    ],
+    "image_encoder.features.denseblock4.denselayer27.norm1.bias": [
+      1472
+    ],
+    "image_encoder.features.denseblock4.denselayer27.norm1.running_mean": [
+      1472
+    ],
+    "image_encoder.features.denseblock4.denselayer27.norm1.running_var": [
+      1472
+    ],
+    "image_encoder.features.denseblock4.denselayer27.norm1.num_batches_tracked": [],
+    "image_encoder.features.denseblock4.denselayer27.conv1.weight": [
+      128,
+      1472,
+      1,
+      1
+    ],
+    "image_encoder.features.denseblock4.denselayer27.norm2.weight": [
+      128
+    ],
+    "image_encoder.features.denseblock4.denselayer27.norm2.bias": [
+      128
+    ],
+    "image_encoder.features.denseblock4.denselayer27.norm2.running_mean": [
+      128
+    ],
+    "image_encoder.features.denseblock4.denselayer27.norm2.running_var": [
+      128
+    ],
+    "image_encoder.features.denseblock4.denselayer27.norm2.num_batches_tracked": [],
+    "image_encoder.features.denseblock4.denselayer27.conv2.weight": [
+      32,
+      128,
+      3,
+      3
+    ],
+    "image_encoder.features.denseblock4.denselayer28.norm1.weight": [
+      1504
+    ],
+    "image_encoder.features.denseblock4.denselayer28.norm1.bias": [
+      1504
+    ],
+    "image_encoder.features.denseblock4.denselayer28.norm1.running_mean": [
+      1504
+    ],
+    "image_encoder.features.denseblock4.denselayer28.norm1.running_var": [
+      1504
+    ],
+    "image_encoder.features.denseblock4.denselayer28.norm1.num_batches_tracked": [],
+    "image_encoder.features.denseblock4.denselayer28.conv1.weight": [
+      128,
+      1504,
+      1,
+      1
+    ],
+    "image_encoder.features.denseblock4.denselayer28.norm2.weight": [
+      128
+    ],
+    "image_encoder.features.denseblock4.denselayer28.norm2.bias": [
+      128
+    ],
+    "image_encoder.features.denseblock4.denselayer28.norm2.running_mean": [
+      128
+    ],
+    "image_encoder.features.denseblock4.denselayer28.norm2.running_var": [
+      128
+    ],
+    "image_encoder.features.denseblock4.denselayer28.norm2.num_batches_tracked": [],
+    "image_encoder.features.denseblock4.denselayer28.conv2.weight": [
+      32,
+      128,
+      3,
+      3
+    ],
+    "image_encoder.features.denseblock4.denselayer29.norm1.weight": [
+      1536
+    ],
+    "image_encoder.features.denseblock4.denselayer29.norm1.bias": [
+      1536
+    ],
+    "image_encoder.features.denseblock4.denselayer29.norm1.running_mean": [
+      1536
+    ],
+    "image_encoder.features.denseblock4.denselayer29.norm1.running_var": [
+      1536
+    ],
+    "image_encoder.features.denseblock4.denselayer29.norm1.num_batches_tracked": [],
+    "image_encoder.features.denseblock4.denselayer29.conv1.weight": [
+      128,
+      1536,
+      1,
+      1
+    ],
+    "image_encoder.features.denseblock4.denselayer29.norm2.weight": [
+      128
+    ],
+    "image_encoder.features.denseblock4.denselayer29.norm2.bias": [
+      128
+    ],
+    "image_encoder.features.denseblock4.denselayer29.norm2.running_mean": [
+      128
+    ],
+    "image_encoder.features.denseblock4.denselayer29.norm2.running_var": [
+      128
+    ],
+    "image_encoder.features.denseblock4.denselayer29.norm2.num_batches_tracked": [],
+    "image_encoder.features.denseblock4.denselayer29.conv2.weight": [
+      32,
+      128,
+      3,
+      3
+    ],
+    "image_encoder.features.denseblock4.denselayer30.norm1.weight": [
+      1568
+    ],
+    "image_encoder.features.denseblock4.denselayer30.norm1.bias": [
+      1568
+    ],
+    "image_encoder.features.denseblock4.denselayer30.norm1.running_mean": [
+      1568
+    ],
+    "image_encoder.features.denseblock4.denselayer30.norm1.running_var": [
+      1568
+    ],
+    "image_encoder.features.denseblock4.denselayer30.norm1.num_batches_tracked": [],
+    "image_encoder.features.denseblock4.denselayer30.conv1.weight": [
+      128,
+      1568,
+      1,
+      1
+    ],
+    "image_encoder.features.denseblock4.denselayer30.norm2.weight": [
+      128
+    ],
+    "image_encoder.features.denseblock4.denselayer30.norm2.bias": [
+      128
+    ],
+    "image_encoder.features.denseblock4.denselayer30.norm2.running_mean": [
+      128
+    ],
+    "image_encoder.features.denseblock4.denselayer30.norm2.running_var": [
+      128
+    ],
+    "image_encoder.features.denseblock4.denselayer30.norm2.num_batches_tracked": [],
+    "image_encoder.features.denseblock4.denselayer30.conv2.weight": [
+      32,
+      128,
+      3,
+      3
+    ],
+    "image_encoder.features.denseblock4.denselayer31.norm1.weight": [
+      1600
+    ],
+    "image_encoder.features.denseblock4.denselayer31.norm1.bias": [
+      1600
+    ],
+    "image_encoder.features.denseblock4.denselayer31.norm1.running_mean": [
+      1600
+    ],
+    "image_encoder.features.denseblock4.denselayer31.norm1.running_var": [
+      1600
+    ],
+    "image_encoder.features.denseblock4.denselayer31.norm1.num_batches_tracked": [],
+    "image_encoder.features.denseblock4.denselayer31.conv1.weight": [
+      128,
+      1600,
+      1,
+      1
+    ],
+    "image_encoder.features.denseblock4.denselayer31.norm2.weight": [
+      128
+    ],
+    "image_encoder.features.denseblock4.denselayer31.norm2.bias": [
+      128
+    ],
+    "image_encoder.features.denseblock4.denselayer31.norm2.running_mean": [
+      128
+    ],
+    "image_encoder.features.denseblock4.denselayer31.norm2.running_var": [
+      128
+    ],
+    "image_encoder.features.denseblock4.denselayer31.norm2.num_batches_tracked": [],
+    "image_encoder.features.denseblock4.denselayer31.conv2.weight": [
+      32,
+      128,
+      3,
+      3
+    ],
+    "image_encoder.features.denseblock4.denselayer32.norm1.weight": [
+      1632
+    ],
+    "image_encoder.features.denseblock4.denselayer32.norm1.bias": [
+      1632
+    ],
+    "image_encoder.features.denseblock4.denselayer32.norm1.running_mean": [
+      1632
+    ],
+    "image_encoder.features.denseblock4.denselayer32.norm1.running_var": [
+      1632
+    ],
+    "image_encoder.features.denseblock4.denselayer32.norm1.num_batches_tracked": [],
+    "image_encoder.features.denseblock4.denselayer32.conv1.weight": [
+      128,
+      1632,
+      1,
+      1
+    ],
+    "image_encoder.features.denseblock4.denselayer32.norm2.weight": [
+      128
+    ],
+    "image_encoder.features.denseblock4.denselayer32.norm2.bias": [
+      128
+    ],
+    "image_encoder.features.denseblock4.denselayer32.norm2.running_mean": [
+      128
+    ],
+    "image_encoder.features.denseblock4.denselayer32.norm2.running_var": [
+      128
+    ],
+    "image_encoder.features.denseblock4.denselayer32.norm2.num_batches_tracked": [],
+    "image_encoder.features.denseblock4.denselayer32.conv2.weight": [
+      32,
+      128,
+      3,
+      3
+    ],
+    "image_encoder.features.norm5.weight": [
+      1664
+    ],
+    "image_encoder.features.norm5.bias": [
+      1664
+    ],
+    "image_encoder.features.norm5.running_mean": [
+      1664
+    ],
+    "image_encoder.features.norm5.running_var": [
+      1664
+    ],
+    "image_encoder.features.norm5.num_batches_tracked": [],
+    "metadata_mlp.network.0.weight": [
+      32,
+      9
+    ],
+    "metadata_mlp.network.0.bias": [
+      32
+    ],
+    "metadata_mlp.network.3.weight": [
+      32,
+      32
+    ],
+    "metadata_mlp.network.3.bias": [
+      32
+    ],
+    "classifier.network.weight": [
+      8,
+      1696
+    ],
+    "classifier.network.bias": [
+      8
+    ]
+  },
+  "parameters": [
+    "image_encoder.features.conv0.weight",
+    "image_encoder.features.norm0.weight",
+    "image_encoder.features.norm0.bias",
+    "image_encoder.features.denseblock1.denselayer1.norm1.weight",
+    "image_encoder.features.denseblock1.denselayer1.norm1.bias",
+    "image_encoder.features.denseblock1.denselayer1.conv1.weight",
+    "image_encoder.features.denseblock1.denselayer1.norm2.weight",
+    "image_encoder.features.denseblock1.denselayer1.norm2.bias",
+    "image_encoder.features.denseblock1.denselayer1.conv2.weight",
+    "image_encoder.features.denseblock1.denselayer2.norm1.weight",
+    "image_encoder.features.denseblock1.denselayer2.norm1.bias",
+    "image_encoder.features.denseblock1.denselayer2.conv1.weight",
+    "image_encoder.features.denseblock1.denselayer2.norm2.weight",
+    "image_encoder.features.denseblock1.denselayer2.norm2.bias",
+    "image_encoder.features.denseblock1.denselayer2.conv2.weight",
+    "image_encoder.features.denseblock1.denselayer3.norm1.weight",
+    "image_encoder.features.denseblock1.denselayer3.norm1.bias",
+    "image_encoder.features.denseblock1.denselayer3.conv1.weight",
+    "image_encoder.features.denseblock1.denselayer3.norm2.weight",
+    "image_encoder.features.denseblock1.denselayer3.norm2.bias",
+    "image_encoder.features.denseblock1.denselayer3.conv2.weight",
+    "image_encoder.features.denseblock1.denselayer4.norm1.weight",
+    "image_encoder.features.denseblock1.denselayer4.norm1.bias",
+    "image_encoder.features.denseblock1.denselayer4.conv1.weight",
+    "image_encoder.features.denseblock1.denselayer4.norm2.weight",
+    "image_encoder.features.denseblock1.denselayer4.norm2.bias",
+    "image_encoder.features.denseblock1.denselayer4.conv2.weight",
+    "image_encoder.features.denseblock1.denselayer5.norm1.weight",
+    "image_encoder.features.denseblock1.denselayer5.norm1.bias",
+    "image_encoder.features.denseblock1.denselayer5.conv1.weight",
+    "image_encoder.features.denseblock1.denselayer5.norm2.weight",
+    "image_encoder.features.denseblock1.denselayer5.norm2.bias",
+    "image_encoder.features.denseblock1.denselayer5.conv2.weight",
+    "image_encoder.features.denseblock1.denselayer6.norm1.weight",
+    "image_encoder.features.denseblock1.denselayer6.norm1.bias",
+    "image_encoder.features.denseblock1.denselayer6.conv1.weight",
+    "image_encoder.features.denseblock1.denselayer6.norm2.weight",
+    "image_encoder.features.denseblock1.denselayer6.norm2.bias",
+    "image_encoder.features.denseblock1.denselayer6.conv2.weight",
+    "image_encoder.features.transition1.norm.weight",
+    "image_encoder.features.transition1.norm.bias",
+    "image_encoder.features.transition1.conv.weight",
+    "image_encoder.features.denseblock2.denselayer1.norm1.weight",
+    "image_encoder.features.denseblock2.denselayer1.norm1.bias",
+    "image_encoder.features.denseblock2.denselayer1.conv1.weight",
+    "image_encoder.features.denseblock2.denselayer1.norm2.weight",
+    "image_encoder.features.denseblock2.denselayer1.norm2.bias",
+    "image_encoder.features.denseblock2.denselayer1.conv2.weight",
+    "image_encoder.features.denseblock2.denselayer2.norm1.weight",
+    "image_encoder.features.denseblock2.denselayer2.norm1.bias",
+    "image_encoder.features.denseblock2.denselayer2.conv1.weight",
+    "image_encoder.features.denseblock2.denselayer2.norm2.weight",
+    "image_encoder.features.denseblock2.denselayer2.norm2.bias",
+    "image_encoder.features.denseblock2.denselayer2.conv2.weight",
+    "image_encoder.features.denseblock2.denselayer3.norm1.weight",
+    "image_encoder.features.denseblock2.denselayer3.norm1.bias",
+    "image_encoder.features.denseblock2.denselayer3.conv1.weight",
+    "image_encoder.features.denseblock2.denselayer3.norm2.weight",
+    "image_encoder.features.denseblock2.denselayer3.norm2.bias",
+    "image_encoder.features.denseblock2.denselayer3.conv2.weight",
+    "image_encoder.features.denseblock2.denselayer4.norm1.weight",
+    "image_encoder.features.denseblock2.denselayer4.norm1.bias",
+    "image_encoder.features.denseblock2.denselayer4.conv1.weight",
+    "image_encoder.features.denseblock2.denselayer4.norm2.weight",
+    "image_encoder.features.denseblock2.denselayer4.norm2.bias",
+    "image_encoder.features.denseblock2.denselayer4.conv2.weight",
+    "image_encoder.features.denseblock2.denselayer5.norm1.weight",
+    "image_encoder.features.denseblock2.denselayer5.norm1.bias",
+    "image_encoder.features.denseblock2.denselayer5.conv1.weight",
+    "image_encoder.features.denseblock2.denselayer5.norm2.weight",
+    "image_encoder.features.denseblock2.denselayer5.norm2.bias",
+    "image_encoder.features.denseblock2.denselayer5.conv2.weight",
+    "image_encoder.features.denseblock2.denselayer6.norm1.weight",
+    "image_encoder.features.denseblock2.denselayer6.norm1.bias",
+    "image_encoder.features.denseblock2.denselayer6.conv1.weight",
+    "image_encoder.features.denseblock2.denselayer6.norm2.weight",
+    "image_encoder.features.denseblock2.denselayer6.norm2.bias",
+    "image_encoder.features.denseblock2.denselayer6.conv2.weight",
+    "image_encoder.features.denseblock2.denselayer7.norm1.weight",
+    "image_encoder.features.denseblock2.denselayer7.norm1.bias",
+    "image_encoder.features.denseblock2.denselayer7.conv1.weight",
+    "image_encoder.features.denseblock2.denselayer7.norm2.weight",
+    "image_encoder.features.denseblock2.denselayer7.norm2.bias",
+    "image_encoder.features.denseblock2.denselayer7.conv2.weight",
+    "image_encoder.features.denseblock2.denselayer8.norm1.weight",
+    "image_encoder.features.denseblock2.denselayer8.norm1.bias",
+    "image_encoder.features.denseblock2.denselayer8.conv1.weight",
+    "image_encoder.features.denseblock2.denselayer8.norm2.weight",
+    "image_encoder.features.denseblock2.denselayer8.norm2.bias",
+    "image_encoder.features.denseblock2.denselayer8.conv2.weight",
+    "image_encoder.features.denseblock2.denselayer9.norm1.weight",
+    "image_encoder.features.denseblock2.denselayer9.norm1.bias",
+    "image_encoder.features.denseblock2.denselayer9.conv1.weight",
+    "image_encoder.features.denseblock2.denselayer9.norm2.weight",
+    "image_encoder.features.denseblock2.denselayer9.norm2.bias",
+    "image_encoder.features.denseblock2.denselayer9.conv2.weight",
+    "image_encoder.features.denseblock2.denselayer10.norm1.weight",
+    "image_encoder.features.denseblock2.denselayer10.norm1.bias",
+    "image_encoder.features.denseblock2.denselayer10.conv1.weight",
+    "image_encoder.features.denseblock2.denselayer10.norm2.weight",
+    "image_encoder.features.denseblock2.denselayer10.norm2.bias",
+    "image_encoder.features.denseblock2.denselayer10.conv2.weight",
+    "image_encoder.features.denseblock2.denselayer11.norm1.weight",
+    "image_encoder.features.denseblock2.denselayer11.norm1.bias",
+    "image_encoder.features.denseblock2.denselayer11.conv1.weight",
+    "image_encoder.features.denseblock2.denselayer11.norm2.weight",
+    "image_encoder.features.denseblock2.denselayer11.norm2.bias",
+    "image_encoder.features.denseblock2.denselayer11.conv2.weight",
+    "image_encoder.features.denseblock2.denselayer12.norm1.weight",
+    "image_encoder.features.denseblock2.denselayer12.norm1.bias",
+    "image_encoder.features.denseblock2.denselayer12.conv1.weight",
+    "image_encoder.features.denseblock2.denselayer12.norm2.weight",
+    "image_encoder.features.denseblock2.denselayer12.norm2.bias",
+    "image_encoder.features.denseblock2.denselayer12.conv2.weight",
+    "image_encoder.features.transition2.norm.weight",
+    "image_encoder.features.transition2.norm.bias",
+    "image_encoder.features.transition2.conv.weight",
+    "image_encoder.features.denseblock3.denselayer1.norm1.weight",
+    "image_encoder.features.denseblock3.denselayer1.norm1.bias",
+    "image_encoder.features.denseblock3.denselayer1.conv1.weight",
+    "image_encoder.features.denseblock3.denselayer1.norm2.weight",
+    "image_encoder.features.denseblock3.denselayer1.norm2.bias",
+    "image_encoder.features.denseblock3.denselayer1.conv2.weight",
+    "image_encoder.features.denseblock3.denselayer2.norm1.weight",
+    "image_encoder.features.denseblock3.denselayer2.norm1.bias",
+    "image_encoder.features.denseblock3.denselayer2.conv1.weight",
+    "image_encoder.features.denseblock3.denselayer2.norm2.weight",
+    "image_encoder.features.denseblock3.denselayer2.norm2.bias",
+    "image_encoder.features.denseblock3.denselayer2.conv2.weight",
+    "image_encoder.features.denseblock3.denselayer3.norm1.weight",
+    "image_encoder.features.denseblock3.denselayer3.norm1.bias",
+    "image_encoder.features.denseblock3.denselayer3.conv1.weight",
+    "image_encoder.features.denseblock3.denselayer3.norm2.weight",
+    "image_encoder.features.denseblock3.denselayer3.norm2.bias",
+    "image_encoder.features.denseblock3.denselayer3.conv2.weight",
+    "image_encoder.features.denseblock3.denselayer4.norm1.weight",
+    "image_encoder.features.denseblock3.denselayer4.norm1.bias",
+    "image_encoder.features.denseblock3.denselayer4.conv1.weight",
+    "image_encoder.features.denseblock3.denselayer4.norm2.weight",
+    "image_encoder.features.denseblock3.denselayer4.norm2.bias",
+    "image_encoder.features.denseblock3.denselayer4.conv2.weight",
+    "image_encoder.features.denseblock3.denselayer5.norm1.weight",
+    "image_encoder.features.denseblock3.denselayer5.norm1.bias",
+    "image_encoder.features.denseblock3.denselayer5.conv1.weight",
+    "image_encoder.features.denseblock3.denselayer5.norm2.weight",
+    "image_encoder.features.denseblock3.denselayer5.norm2.bias",
+    "image_encoder.features.denseblock3.denselayer5.conv2.weight",
+    "image_encoder.features.denseblock3.denselayer6.norm1.weight",
+    "image_encoder.features.denseblock3.denselayer6.norm1.bias",
+    "image_encoder.features.denseblock3.denselayer6.conv1.weight",
+    "image_encoder.features.denseblock3.denselayer6.norm2.weight",
+    "image_encoder.features.denseblock3.denselayer6.norm2.bias",
+    "image_encoder.features.denseblock3.denselayer6.conv2.weight",
+    "image_encoder.features.denseblock3.denselayer7.norm1.weight",
+    "image_encoder.features.denseblock3.denselayer7.norm1.bias",
+    "image_encoder.features.denseblock3.denselayer7.conv1.weight",
+    "image_encoder.features.denseblock3.denselayer7.norm2.weight",
+    "image_encoder.features.denseblock3.denselayer7.norm2.bias",
+    "image_encoder.features.denseblock3.denselayer7.conv2.weight",
+    "image_encoder.features.denseblock3.denselayer8.norm1.weight",
+    "image_encoder.features.denseblock3.denselayer8.norm1.bias",
+    "image_encoder.features.denseblock3.denselayer8.conv1.weight",
+    "image_encoder.features.denseblock3.denselayer8.norm2.weight",
+    "image_encoder.features.denseblock3.denselayer8.norm2.bias",
+    "image_encoder.features.denseblock3.denselayer8.conv2.weight",
+    "image_encoder.features.denseblock3.denselayer9.norm1.weight",
+    "image_encoder.features.denseblock3.denselayer9.norm1.bias",
+    "image_encoder.features.denseblock3.denselayer9.conv1.weight",
+    "image_encoder.features.denseblock3.denselayer9.norm2.weight",
+    "image_encoder.features.denseblock3.denselayer9.norm2.bias",
+    "image_encoder.features.denseblock3.denselayer9.conv2.weight",
+    "image_encoder.features.denseblock3.denselayer10.norm1.weight",
+    "image_encoder.features.denseblock3.denselayer10.norm1.bias",
+    "image_encoder.features.denseblock3.denselayer10.conv1.weight",
+    "image_encoder.features.denseblock3.denselayer10.norm2.weight",
+    "image_encoder.features.denseblock3.denselayer10.norm2.bias",
+    "image_encoder.features.denseblock3.denselayer10.conv2.weight",
+    "image_encoder.features.denseblock3.denselayer11.norm1.weight",
+    "image_encoder.features.denseblock3.denselayer11.norm1.bias",
+    "image_encoder.features.denseblock3.denselayer11.conv1.weight",
+    "image_encoder.features.denseblock3.denselayer11.norm2.weight",
+    "image_encoder.features.denseblock3.denselayer11.norm2.bias",
+    "image_encoder.features.denseblock3.denselayer11.conv2.weight",
+    "image_encoder.features.denseblock3.denselayer12.norm1.weight",
+    "image_encoder.features.denseblock3.denselayer12.norm1.bias",
+    "image_encoder.features.denseblock3.denselayer12.conv1.weight",
+    "image_encoder.features.denseblock3.denselayer12.norm2.weight",
+    "image_encoder.features.denseblock3.denselayer12.norm2.bias",
+    "image_encoder.features.denseblock3.denselayer12.conv2.weight",
+    "image_encoder.features.denseblock3.denselayer13.norm1.weight",
+    "image_encoder.features.denseblock3.denselayer13.norm1.bias",
+    "image_encoder.features.denseblock3.denselayer13.conv1.weight",
+    "image_encoder.features.denseblock3.denselayer13.norm2.weight",
+    "image_encoder.features.denseblock3.denselayer13.norm2.bias",
+    "image_encoder.features.denseblock3.denselayer13.conv2.weight",
+    "image_encoder.features.denseblock3.denselayer14.norm1.weight",
+    "image_encoder.features.denseblock3.denselayer14.norm1.bias",
+    "image_encoder.features.denseblock3.denselayer14.conv1.weight",
+    "image_encoder.features.denseblock3.denselayer14.norm2.weight",
+    "image_encoder.features.denseblock3.denselayer14.norm2.bias",
+    "image_encoder.features.denseblock3.denselayer14.conv2.weight",
+    "image_encoder.features.denseblock3.denselayer15.norm1.weight",
+    "image_encoder.features.denseblock3.denselayer15.norm1.bias",
+    "image_encoder.features.denseblock3.denselayer15.conv1.weight",
+    "image_encoder.features.denseblock3.denselayer15.norm2.weight",
+    "image_encoder.features.denseblock3.denselayer15.norm2.bias",
+    "image_encoder.features.denseblock3.denselayer15.conv2.weight",
+    "image_encoder.features.denseblock3.denselayer16.norm1.weight",
+    "image_encoder.features.denseblock3.denselayer16.norm1.bias",
+    "image_encoder.features.denseblock3.denselayer16.conv1.weight",
+    "image_encoder.features.denseblock3.denselayer16.norm2.weight",
+    "image_encoder.features.denseblock3.denselayer16.norm2.bias",
+    "image_encoder.features.denseblock3.denselayer16.conv2.weight",
+    "image_encoder.features.denseblock3.denselayer17.norm1.weight",
+    "image_encoder.features.denseblock3.denselayer17.norm1.bias",
+    "image_encoder.features.denseblock3.denselayer17.conv1.weight",
+    "image_encoder.features.denseblock3.denselayer17.norm2.weight",
+    "image_encoder.features.denseblock3.denselayer17.norm2.bias",
+    "image_encoder.features.denseblock3.denselayer17.conv2.weight",
+    "image_encoder.features.denseblock3.denselayer18.norm1.weight",
+    "image_encoder.features.denseblock3.denselayer18.norm1.bias",
+    "image_encoder.features.denseblock3.denselayer18.conv1.weight",
+    "image_encoder.features.denseblock3.denselayer18.norm2.weight",
+    "image_encoder.features.denseblock3.denselayer18.norm2.bias",
+    "image_encoder.features.denseblock3.denselayer18.conv2.weight",
+    "image_encoder.features.denseblock3.denselayer19.norm1.weight",
+    "image_encoder.features.denseblock3.denselayer19.norm1.bias",
+    "image_encoder.features.denseblock3.denselayer19.conv1.weight",
+    "image_encoder.features.denseblock3.denselayer19.norm2.weight",
+    "image_encoder.features.denseblock3.denselayer19.norm2.bias",
+    "image_encoder.features.denseblock3.denselayer19.conv2.weight",
+    "image_encoder.features.denseblock3.denselayer20.norm1.weight",
+    "image_encoder.features.denseblock3.denselayer20.norm1.bias",
+    "image_encoder.features.denseblock3.denselayer20.conv1.weight",
+    "image_encoder.features.denseblock3.denselayer20.norm2.weight",
+    "image_encoder.features.denseblock3.denselayer20.norm2.bias",
+    "image_encoder.features.denseblock3.denselayer20.conv2.weight",
+    "image_encoder.features.denseblock3.denselayer21.norm1.weight",
+    "image_encoder.features.denseblock3.denselayer21.norm1.bias",
+    "image_encoder.features.denseblock3.denselayer21.conv1.weight",
+    "image_encoder.features.denseblock3.denselayer21.norm2.weight",
+    "image_encoder.features.denseblock3.denselayer21.norm2.bias",
+    "image_encoder.features.denseblock3.denselayer21.conv2.weight",
+    "image_encoder.features.denseblock3.denselayer22.norm1.weight",
+    "image_encoder.features.denseblock3.denselayer22.norm1.bias",
+    "image_encoder.features.denseblock3.denselayer22.conv1.weight",
+    "image_encoder.features.denseblock3.denselayer22.norm2.weight",
+    "image_encoder.features.denseblock3.denselayer22.norm2.bias",
+    "image_encoder.features.denseblock3.denselayer22.conv2.weight",
+    "image_encoder.features.denseblock3.denselayer23.norm1.weight",
+    "image_encoder.features.denseblock3.denselayer23.norm1.bias",
+    "image_encoder.features.denseblock3.denselayer23.conv1.weight",
+    "image_encoder.features.denseblock3.denselayer23.norm2.weight",
+    "image_encoder.features.denseblock3.denselayer23.norm2.bias",
+    "image_encoder.features.denseblock3.denselayer23.conv2.weight",
+    "image_encoder.features.denseblock3.denselayer24.norm1.weight",
+    "image_encoder.features.denseblock3.denselayer24.norm1.bias",
+    "image_encoder.features.denseblock3.denselayer24.conv1.weight",
+    "image_encoder.features.denseblock3.denselayer24.norm2.weight",
+    "image_encoder.features.denseblock3.denselayer24.norm2.bias",
+    "image_encoder.features.denseblock3.denselayer24.conv2.weight",
+    "image_encoder.features.denseblock3.denselayer25.norm1.weight",
+    "image_encoder.features.denseblock3.denselayer25.norm1.bias",
+    "image_encoder.features.denseblock3.denselayer25.conv1.weight",
+    "image_encoder.features.denseblock3.denselayer25.norm2.weight",
+    "image_encoder.features.denseblock3.denselayer25.norm2.bias",
+    "image_encoder.features.denseblock3.denselayer25.conv2.weight",
+    "image_encoder.features.denseblock3.denselayer26.norm1.weight",
+    "image_encoder.features.denseblock3.denselayer26.norm1.bias",
+    "image_encoder.features.denseblock3.denselayer26.conv1.weight",
+    "image_encoder.features.denseblock3.denselayer26.norm2.weight",
+    "image_encoder.features.denseblock3.denselayer26.norm2.bias",
+    "image_encoder.features.denseblock3.denselayer26.conv2.weight",
+    "image_encoder.features.denseblock3.denselayer27.norm1.weight",
+    "image_encoder.features.denseblock3.denselayer27.norm1.bias",
+    "image_encoder.features.denseblock3.denselayer27.conv1.weight",
+    "image_encoder.features.denseblock3.denselayer27.norm2.weight",
+    "image_encoder.features.denseblock3.denselayer27.norm2.bias",
+    "image_encoder.features.denseblock3.denselayer27.conv2.weight",
+    "image_encoder.features.denseblock3.denselayer28.norm1.weight",
+    "image_encoder.features.denseblock3.denselayer28.norm1.bias",
+    "image_encoder.features.denseblock3.denselayer28.conv1.weight",
+    "image_encoder.features.denseblock3.denselayer28.norm2.weight",
+    "image_encoder.features.denseblock3.denselayer28.norm2.bias",
+    "image_encoder.features.denseblock3.denselayer28.conv2.weight",
+    "image_encoder.features.denseblock3.denselayer29.norm1.weight",
+    "image_encoder.features.denseblock3.denselayer29.norm1.bias",
+    "image_encoder.features.denseblock3.denselayer29.conv1.weight",
+    "image_encoder.features.denseblock3.denselayer29.norm2.weight",
+    "image_encoder.features.denseblock3.denselayer29.norm2.bias",
+    "image_encoder.features.denseblock3.denselayer29.conv2.weight",
+    "image_encoder.features.denseblock3.denselayer30.norm1.weight",
+    "image_encoder.features.denseblock3.denselayer30.norm1.bias",
+    "image_encoder.features.denseblock3.denselayer30.conv1.weight",
+    "image_encoder.features.denseblock3.denselayer30.norm2.weight",
+    "image_encoder.features.denseblock3.denselayer30.norm2.bias",
+    "image_encoder.features.denseblock3.denselayer30.conv2.weight",
+    "image_encoder.features.denseblock3.denselayer31.norm1.weight",
+    "image_encoder.features.denseblock3.denselayer31.norm1.bias",
+    "image_encoder.features.denseblock3.denselayer31.conv1.weight",
+    "image_encoder.features.denseblock3.denselayer31.norm2.weight",
+    "image_encoder.features.denseblock3.denselayer31.norm2.bias",
+    "image_encoder.features.denseblock3.denselayer31.conv2.weight",
+    "image_encoder.features.denseblock3.denselayer32.norm1.weight",
+    "image_encoder.features.denseblock3.denselayer32.norm1.bias",
+    "image_encoder.features.denseblock3.denselayer32.conv1.weight",
+    "image_encoder.features.denseblock3.denselayer32.norm2.weight",
+    "image_encoder.features.denseblock3.denselayer32.norm2.bias",
+    "image_encoder.features.denseblock3.denselayer32.conv2.weight",
+    "image_encoder.features.transition3.norm.weight",
+    "image_encoder.features.transition3.norm.bias",
+    "image_encoder.features.transition3.conv.weight",
+    "image_encoder.features.denseblock4.denselayer1.norm1.weight",
+    "image_encoder.features.denseblock4.denselayer1.norm1.bias",
+    "image_encoder.features.denseblock4.denselayer1.conv1.weight",
+    "image_encoder.features.denseblock4.denselayer1.norm2.weight",
+    "image_encoder.features.denseblock4.denselayer1.norm2.bias",
+    "image_encoder.features.denseblock4.denselayer1.conv2.weight",
+    "image_encoder.features.denseblock4.denselayer2.norm1.weight",
+    "image_encoder.features.denseblock4.denselayer2.norm1.bias",
+    "image_encoder.features.denseblock4.denselayer2.conv1.weight",
+    "image_encoder.features.denseblock4.denselayer2.norm2.weight",
+    "image_encoder.features.denseblock4.denselayer2.norm2.bias",
+    "image_encoder.features.denseblock4.denselayer2.conv2.weight",
+    "image_encoder.features.denseblock4.denselayer3.norm1.weight",
+    "image_encoder.features.denseblock4.denselayer3.norm1.bias",
+    "image_encoder.features.denseblock4.denselayer3.conv1.weight",
+    "image_encoder.features.denseblock4.denselayer3.norm2.weight",
+    "image_encoder.features.denseblock4.denselayer3.norm2.bias",
+    "image_encoder.features.denseblock4.denselayer3.conv2.weight",
+    "image_encoder.features.denseblock4.denselayer4.norm1.weight",
+    "image_encoder.features.denseblock4.denselayer4.norm1.bias",
+    "image_encoder.features.denseblock4.denselayer4.conv1.weight",
+    "image_encoder.features.denseblock4.denselayer4.norm2.weight",
+    "image_encoder.features.denseblock4.denselayer4.norm2.bias",
+    "image_encoder.features.denseblock4.denselayer4.conv2.weight",
+    "image_encoder.features.denseblock4.denselayer5.norm1.weight",
+    "image_encoder.features.denseblock4.denselayer5.norm1.bias",
+    "image_encoder.features.denseblock4.denselayer5.conv1.weight",
+    "image_encoder.features.denseblock4.denselayer5.norm2.weight",
+    "image_encoder.features.denseblock4.denselayer5.norm2.bias",
+    "image_encoder.features.denseblock4.denselayer5.conv2.weight",
+    "image_encoder.features.denseblock4.denselayer6.norm1.weight",
+    "image_encoder.features.denseblock4.denselayer6.norm1.bias",
+    "image_encoder.features.denseblock4.denselayer6.conv1.weight",
+    "image_encoder.features.denseblock4.denselayer6.norm2.weight",
+    "image_encoder.features.denseblock4.denselayer6.norm2.bias",
+    "image_encoder.features.denseblock4.denselayer6.conv2.weight",
+    "image_encoder.features.denseblock4.denselayer7.norm1.weight",
+    "image_encoder.features.denseblock4.denselayer7.norm1.bias",
+    "image_encoder.features.denseblock4.denselayer7.conv1.weight",
+    "image_encoder.features.denseblock4.denselayer7.norm2.weight",
+    "image_encoder.features.denseblock4.denselayer7.norm2.bias",
+    "image_encoder.features.denseblock4.denselayer7.conv2.weight",
+    "image_encoder.features.denseblock4.denselayer8.norm1.weight",
+    "image_encoder.features.denseblock4.denselayer8.norm1.bias",
+    "image_encoder.features.denseblock4.denselayer8.conv1.weight",
+    "image_encoder.features.denseblock4.denselayer8.norm2.weight",
+    "image_encoder.features.denseblock4.denselayer8.norm2.bias",
+    "image_encoder.features.denseblock4.denselayer8.conv2.weight",
+    "image_encoder.features.denseblock4.denselayer9.norm1.weight",
+    "image_encoder.features.denseblock4.denselayer9.norm1.bias",
+    "image_encoder.features.denseblock4.denselayer9.conv1.weight",
+    "image_encoder.features.denseblock4.denselayer9.norm2.weight",
+    "image_encoder.features.denseblock4.denselayer9.norm2.bias",
+    "image_encoder.features.denseblock4.denselayer9.conv2.weight",
+    "image_encoder.features.denseblock4.denselayer10.norm1.weight",
+    "image_encoder.features.denseblock4.denselayer10.norm1.bias",
+    "image_encoder.features.denseblock4.denselayer10.conv1.weight",
+    "image_encoder.features.denseblock4.denselayer10.norm2.weight",
+    "image_encoder.features.denseblock4.denselayer10.norm2.bias",
+    "image_encoder.features.denseblock4.denselayer10.conv2.weight",
+    "image_encoder.features.denseblock4.denselayer11.norm1.weight",
+    "image_encoder.features.denseblock4.denselayer11.norm1.bias",
+    "image_encoder.features.denseblock4.denselayer11.conv1.weight",
+    "image_encoder.features.denseblock4.denselayer11.norm2.weight",
+    "image_encoder.features.denseblock4.denselayer11.norm2.bias",
+    "image_encoder.features.denseblock4.denselayer11.conv2.weight",
+    "image_encoder.features.denseblock4.denselayer12.norm1.weight",
+    "image_encoder.features.denseblock4.denselayer12.norm1.bias",
+    "image_encoder.features.denseblock4.denselayer12.conv1.weight",
+    "image_encoder.features.denseblock4.denselayer12.norm2.weight",
+    "image_encoder.features.denseblock4.denselayer12.norm2.bias",
+    "image_encoder.features.denseblock4.denselayer12.conv2.weight",
+    "image_encoder.features.denseblock4.denselayer13.norm1.weight",
+    "image_encoder.features.denseblock4.denselayer13.norm1.bias",
+    "image_encoder.features.denseblock4.denselayer13.conv1.weight",
+    "image_encoder.features.denseblock4.denselayer13.norm2.weight",
+    "image_encoder.features.denseblock4.denselayer13.norm2.bias",
+    "image_encoder.features.denseblock4.denselayer13.conv2.weight",
+    "image_encoder.features.denseblock4.denselayer14.norm1.weight",
+    "image_encoder.features.denseblock4.denselayer14.norm1.bias",
+    "image_encoder.features.denseblock4.denselayer14.conv1.weight",
+    "image_encoder.features.denseblock4.denselayer14.norm2.weight",
+    "image_encoder.features.denseblock4.denselayer14.norm2.bias",
+    "image_encoder.features.denseblock4.denselayer14.conv2.weight",
+    "image_encoder.features.denseblock4.denselayer15.norm1.weight",
+    "image_encoder.features.denseblock4.denselayer15.norm1.bias",
+    "image_encoder.features.denseblock4.denselayer15.conv1.weight",
+    "image_encoder.features.denseblock4.denselayer15.norm2.weight",
+    "image_encoder.features.denseblock4.denselayer15.norm2.bias",
+    "image_encoder.features.denseblock4.denselayer15.conv2.weight",
+    "image_encoder.features.denseblock4.denselayer16.norm1.weight",
+    "image_encoder.features.denseblock4.denselayer16.norm1.bias",
+    "image_encoder.features.denseblock4.denselayer16.conv1.weight",
+    "image_encoder.features.denseblock4.denselayer16.norm2.weight",
+    "image_encoder.features.denseblock4.denselayer16.norm2.bias",
+    "image_encoder.features.denseblock4.denselayer16.conv2.weight",
+    "image_encoder.features.denseblock4.denselayer17.norm1.weight",
+    "image_encoder.features.denseblock4.denselayer17.norm1.bias",
+    "image_encoder.features.denseblock4.denselayer17.conv1.weight",
+    "image_encoder.features.denseblock4.denselayer17.norm2.weight",
+    "image_encoder.features.denseblock4.denselayer17.norm2.bias",
+    "image_encoder.features.denseblock4.denselayer17.conv2.weight",
+    "image_encoder.features.denseblock4.denselayer18.norm1.weight",
+    "image_encoder.features.denseblock4.denselayer18.norm1.bias",
+    "image_encoder.features.denseblock4.denselayer18.conv1.weight",
+    "image_encoder.features.denseblock4.denselayer18.norm2.weight",
+    "image_encoder.features.denseblock4.denselayer18.norm2.bias",
+    "image_encoder.features.denseblock4.denselayer18.conv2.weight",
+    "image_encoder.features.denseblock4.denselayer19.norm1.weight",
+    "image_encoder.features.denseblock4.denselayer19.norm1.bias",
+    "image_encoder.features.denseblock4.denselayer19.conv1.weight",
+    "image_encoder.features.denseblock4.denselayer19.norm2.weight",
+    "image_encoder.features.denseblock4.denselayer19.norm2.bias",
+    "image_encoder.features.denseblock4.denselayer19.conv2.weight",
+    "image_encoder.features.denseblock4.denselayer20.norm1.weight",
+    "image_encoder.features.denseblock4.denselayer20.norm1.bias",
+    "image_encoder.features.denseblock4.denselayer20.conv1.weight",
+    "image_encoder.features.denseblock4.denselayer20.norm2.weight",
+    "image_encoder.features.denseblock4.denselayer20.norm2.bias",
+    "image_encoder.features.denseblock4.denselayer20.conv2.weight",
+    "image_encoder.features.denseblock4.denselayer21.norm1.weight",
+    "image_encoder.features.denseblock4.denselayer21.norm1.bias",
+    "image_encoder.features.denseblock4.denselayer21.conv1.weight",
+    "image_encoder.features.denseblock4.denselayer21.norm2.weight",
+    "image_encoder.features.denseblock4.denselayer21.norm2.bias",
+    "image_encoder.features.denseblock4.denselayer21.conv2.weight",
+    "image_encoder.features.denseblock4.denselayer22.norm1.weight",
+    "image_encoder.features.denseblock4.denselayer22.norm1.bias",
+    "image_encoder.features.denseblock4.denselayer22.conv1.weight",
+    "image_encoder.features.denseblock4.denselayer22.norm2.weight",
+    "image_encoder.features.denseblock4.denselayer22.norm2.bias",
+    "image_encoder.features.denseblock4.denselayer22.conv2.weight",
+    "image_encoder.features.denseblock4.denselayer23.norm1.weight",
+    "image_encoder.features.denseblock4.denselayer23.norm1.bias",
+    "image_encoder.features.denseblock4.denselayer23.conv1.weight",
+    "image_encoder.features.denseblock4.denselayer23.norm2.weight",
+    "image_encoder.features.denseblock4.denselayer23.norm2.bias",
+    "image_encoder.features.denseblock4.denselayer23.conv2.weight",
+    "image_encoder.features.denseblock4.denselayer24.norm1.weight",
+    "image_encoder.features.denseblock4.denselayer24.norm1.bias",
+    "image_encoder.features.denseblock4.denselayer24.conv1.weight",
+    "image_encoder.features.denseblock4.denselayer24.norm2.weight",
+    "image_encoder.features.denseblock4.denselayer24.norm2.bias",
+    "image_encoder.features.denseblock4.denselayer24.conv2.weight",
+    "image_encoder.features.denseblock4.denselayer25.norm1.weight",
+    "image_encoder.features.denseblock4.denselayer25.norm1.bias",
+    "image_encoder.features.denseblock4.denselayer25.conv1.weight",
+    "image_encoder.features.denseblock4.denselayer25.norm2.weight",
+    "image_encoder.features.denseblock4.denselayer25.norm2.bias",
+    "image_encoder.features.denseblock4.denselayer25.conv2.weight",
+    "image_encoder.features.denseblock4.denselayer26.norm1.weight",
+    "image_encoder.features.denseblock4.denselayer26.norm1.bias",
+    "image_encoder.features.denseblock4.denselayer26.conv1.weight",
+    "image_encoder.features.denseblock4.denselayer26.norm2.weight",
+    "image_encoder.features.denseblock4.denselayer26.norm2.bias",
+    "image_encoder.features.denseblock4.denselayer26.conv2.weight",
+    "image_encoder.features.denseblock4.denselayer27.norm1.weight",
+    "image_encoder.features.denseblock4.denselayer27.norm1.bias",
+    "image_encoder.features.denseblock4.denselayer27.conv1.weight",
+    "image_encoder.features.denseblock4.denselayer27.norm2.weight",
+    "image_encoder.features.denseblock4.denselayer27.norm2.bias",
+    "image_encoder.features.denseblock4.denselayer27.conv2.weight",
+    "image_encoder.features.denseblock4.denselayer28.norm1.weight",
+    "image_encoder.features.denseblock4.denselayer28.norm1.bias",
+    "image_encoder.features.denseblock4.denselayer28.conv1.weight",
+    "image_encoder.features.denseblock4.denselayer28.norm2.weight",
+    "image_encoder.features.denseblock4.denselayer28.norm2.bias",
+    "image_encoder.features.denseblock4.denselayer28.conv2.weight",
+    "image_encoder.features.denseblock4.denselayer29.norm1.weight",
+    "image_encoder.features.denseblock4.denselayer29.norm1.bias",
+    "image_encoder.features.denseblock4.denselayer29.conv1.weight",
+    "image_encoder.features.denseblock4.denselayer29.norm2.weight",
+    "image_encoder.features.denseblock4.denselayer29.norm2.bias",
+    "image_encoder.features.denseblock4.denselayer29.conv2.weight",
+    "image_encoder.features.denseblock4.denselayer30.norm1.weight",
+    "image_encoder.features.denseblock4.denselayer30.norm1.bias",
+    "image_encoder.features.denseblock4.denselayer30.conv1.weight",
+    "image_encoder.features.denseblock4.denselayer30.norm2.weight",
+    "image_encoder.features.denseblock4.denselayer30.norm2.bias",
+    "image_encoder.features.denseblock4.denselayer30.conv2.weight",
+    "image_encoder.features.denseblock4.denselayer31.norm1.weight",
+    "image_encoder.features.denseblock4.denselayer31.norm1.bias",
+    "image_encoder.features.denseblock4.denselayer31.conv1.weight",
+    "image_encoder.features.denseblock4.denselayer31.norm2.weight",
+    "image_encoder.features.denseblock4.denselayer31.norm2.bias",
+    "image_encoder.features.denseblock4.denselayer31.conv2.weight",
+    "image_encoder.features.denseblock4.denselayer32.norm1.weight",
+    "image_encoder.features.denseblock4.denselayer32.norm1.bias",
+    "image_encoder.features.denseblock4.denselayer32.conv1.weight",
+    "image_encoder.features.denseblock4.denselayer32.norm2.weight",
+    "image_encoder.features.denseblock4.denselayer32.norm2.bias",
+    "image_encoder.features.denseblock4.denselayer32.conv2.weight",
+    "image_encoder.features.norm5.weight",
+    "image_encoder.features.norm5.bias",
+    "metadata_mlp.network.0.weight",
+    "metadata_mlp.network.0.bias",
+    "metadata_mlp.network.3.weight",
+    "metadata_mlp.network.3.bias",
+    "classifier.network.weight",
+    "classifier.network.bias"
+  ]
+}

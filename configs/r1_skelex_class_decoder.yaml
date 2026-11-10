@@ -1,0 +1,3 @@
+base: r1_densenet_class_decoder.yaml
+model:
+  backbone: skelex

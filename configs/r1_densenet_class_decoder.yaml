@@ -1,0 +1,4 @@
+base: b2_knowledge.yaml
+model:
+  knowledge_decoder: class_conditioned
+  residual_knowledge_logits: true

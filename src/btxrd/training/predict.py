@@ -10,7 +10,7 @@ import numpy as np
 import pandas as pd
 import torch
 
-from btxrd.config import Config
+from btxrd.config import Config, migrate_config
 from btxrd.constants import CLASS_NAMES
 from btxrd.data.dataset import build_dataloaders
 from btxrd.knowledge.kb import load_kb
@@ -26,6 +26,7 @@ _ARCHITECTURE_KEYS = (
     "data.columns",
     "data.image_ext",
     "data.input_size",
+    "data.preprocessing",
 )
 _RUNTIME_KEYS = (
     "paths",
@@ -53,7 +54,10 @@ def _set_dotted(data: dict[str, Any], key: str, value: Any) -> None:
 
 
 def _prediction_config(runtime_cfg, checkpoint_config: dict[str, Any]) -> Config:
+    checkpoint_config = migrate_config(checkpoint_config)
     runtime = runtime_cfg.to_dict()
+    if runtime['model']['backbone'] == 'skelex':
+        runtime['model']['skelex']['vit_config'] = checkpoint_config['model']['skelex']['vit_config']
     mismatches = [key for key in _ARCHITECTURE_KEYS if _get_dotted(runtime, key) != _get_dotted(checkpoint_config, key)]
     if mismatches:
         raise ValueError(f"Prediction architecture differs from checkpoint at: {', '.join(mismatches)}")
@@ -82,6 +86,10 @@ def _verify_optional_knowledge(cfg, checkpoint: dict[str, Any]) -> None:
 def predict(cfg, checkpoint_path: str | Path, split: str = "test", return_extras: bool = False):
     checkpoint = load_checkpoint(checkpoint_path, "cpu")
     resolved = _prediction_config(cfg, checkpoint["config"])
+    if resolved.model.backbone == 'skelex':
+        saved = resolved.to_dict()
+        saved['model']['skelex']['vit_config'] = checkpoint['vit_config']
+        resolved = Config(saved, resolved.source_path)
     if resolved.model.use_knowledge:
         _verify_optional_knowledge(resolved, checkpoint)
         embeddings = checkpoint.get("model_buffers", {}).get("text_embeddings")
@@ -107,6 +115,7 @@ def predict(cfg, checkpoint_path: str | Path, split: str = "test", return_extras
     probabilities: list[np.ndarray] = []
     cross_attn: list[np.ndarray] = []
     aggregation: list[np.ndarray] = []
+    decoder_extras = {key: [] for key in ('class_attn_weights', 'logits_img', 'logits_kb')}
     with torch.no_grad():
         for batch in data.loaders[split]:
             image = batch["image"].to(device, non_blocking=True)
@@ -114,6 +123,9 @@ def predict(cfg, checkpoint_path: str | Path, split: str = "test", return_extras
             if metadata is not None:
                 metadata = metadata.to(device, non_blocking=True)
             output = model(image, metadata)
+            for key, values in decoder_extras.items():
+                if key in output:
+                    values.append(output[key].cpu().numpy())
             prob = output["logits"].softmax(dim=1)
             prediction = prob.argmax(dim=1)
             image_ids.extend(batch["image_id"])
@@ -142,4 +154,5 @@ def predict(cfg, checkpoint_path: str | Path, split: str = "test", return_extras
         "cross_attn_weights": np.concatenate(cross_attn) if cross_attn else None,
         "kb_ids": checkpoint.get("kb_ids") if resolved.model.use_knowledge else None,
     }
+    extras.update({key: np.concatenate(values) for key, values in decoder_extras.items() if values})
     return frame, extras

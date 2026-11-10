@@ -31,10 +31,16 @@ class PropositionCrossAttention(nn.Module):
         self.attn = nn.MultiheadAttention(dim, num_heads, dropout=dropout, batch_first=True)
         self.use_positional_embedding = use_positional_embedding
 
-    def forward(self, feature_map: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
-        batch, _, rows, cols = feature_map.shape
-        visual = self.token_proj(feature_map.flatten(2).transpose(1, 2))
+    def forward(self, feature_map: torch.Tensor, spatial_shape=None) -> tuple[torch.Tensor, torch.Tensor]:
+        if feature_map.ndim == 4:
+            spatial_shape = feature_map.shape[-2:]
+            feature_map = feature_map.flatten(2).transpose(1, 2)
+        batch = feature_map.shape[0]
+        visual = self.token_proj(feature_map)
         if self.use_positional_embedding:
+            if spatial_shape is None:
+                raise ValueError('Positional embedding requires spatial_shape')
+            rows, cols = spatial_shape
             visual = visual + fixed_2d_sincos(rows, cols, visual.shape[-1], visual.device, visual.dtype).unsqueeze(0)
         query = self.query_proj(self.text_emb).unsqueeze(0).expand(batch, -1, -1)
         prop_features, weights = self.attn(
