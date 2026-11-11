@@ -9,7 +9,7 @@ from torchvision import transforms
 from btxrd.config import load_config
 from btxrd.constants import CLASS_NAMES
 from btxrd.data.dataset import build_dataloaders
-from btxrd.data.transforms import build_train_transform
+from btxrd.data.transforms import build_train_transform, build_eval_transform
 from btxrd.models.image_encoder import EncoderOutput, CNNEncoder, SKELEXEncoder
 from btxrd.models.model import BTXRDModel
 from btxrd.models.class_decoder import build_class_prototypes
@@ -54,6 +54,25 @@ def test_all_protocol_configs_train_predict_resume(path, config_overrides, monke
     assert len(predictions) == 8
     resume = load_config(path, {**overrides, 'train.resume': True})
     assert train(resume)['epochs_ran'] == 1
+
+
+@pytest.mark.parametrize('preprocessing', [None, 'imagenet_gray3', 'clip_gray3'])
+def test_vit_preprocessing(config_overrides, preprocessing):
+    from PIL import Image
+
+    overrides = {} if preprocessing is None else {'data.preprocessing': preprocessing}
+    cfg = load_config('configs/cv/b_vit_b16.yaml', config_overrides(**overrides))
+    assert cfg.data.preprocessing == 'vit_gray3'
+    for build_transform in (build_train_transform, build_eval_transform):
+        transform = build_transform(cfg.data)
+        assert any(isinstance(t, transforms.Grayscale) and t.num_output_channels == 3
+                   for t in transform.transforms)
+        normalization = transform.transforms[-1]
+        assert isinstance(normalization, transforms.Normalize)
+        assert list(normalization.mean) == [0.5, 0.5, 0.5]
+        assert list(normalization.std) == [0.5, 0.5, 0.5]
+        assert torch.equal(transform(Image.new('RGB', (32, 32), 0)),
+                           -torch.ones(3, cfg.data.input_size, cfg.data.input_size))
 
 
 def test_augmentation_sampling_and_weights(config_overrides):

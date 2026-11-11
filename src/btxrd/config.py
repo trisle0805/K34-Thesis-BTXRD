@@ -204,7 +204,7 @@ def validate_config(data: dict[str, Any], schema: dict[str, Any] | None = None, 
         raise ValueError('Invalid knowledge.decoder.scorer')
     if knowledge['decoder']['num_heads'] < 1 or knowledge['dim'] % knowledge['decoder']['num_heads']:
         raise ValueError('knowledge.dim must be divisible by decoder.num_heads')
-    if data_cfg['preprocessing'] not in {'imagenet_gray3', 'skelex_minmax_rgb', 'clip_gray3'}:
+    if data_cfg['preprocessing'] not in {'imagenet_gray3', 'skelex_minmax_rgb', 'clip_gray3', 'vit_gray3'}:
         raise ValueError('Invalid data.preprocessing')
     if train_cfg['recipe'] not in {'densenet', 'skelex', 'vit'}:
         raise ValueError('Invalid train.recipe')
@@ -291,7 +291,9 @@ def load_config(
         for field, value in recipe[section].items():
             if data[section].get(field) == 'auto':
                 data[section][field] = deepcopy(value)
-    if data["model"]["backbone"] == "biomedclip_vitb16":
+    if data["model"]["backbone"] == "vit_b16":
+        data["data"]["preprocessing"] = "vit_gray3"
+    elif data["model"]["backbone"] == "biomedclip_vitb16":
         data["data"]["preprocessing"] = "clip_gray3"
     if data["run"]["name"] is None:
         data["run"]["name"] = path.stem

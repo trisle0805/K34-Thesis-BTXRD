@@ -25,6 +25,8 @@ def _skelex_transform(data_cfg, training):
 
 
 def _normalization(data_cfg):
+    if data_cfg.get('preprocessing') == 'vit_gray3':
+        return transforms.Normalize([0.5, 0.5, 0.5], [0.5, 0.5, 0.5])
     if data_cfg.get('preprocessing') == 'clip_gray3':
         return transforms.Normalize([0.48145466, 0.4578275, 0.40821073], [0.26862954, 0.26130258, 0.27577711])
     return transforms.Normalize(IMAGENET_MEAN, IMAGENET_STD)
