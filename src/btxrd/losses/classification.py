@@ -7,7 +7,7 @@ from torch import nn
 
 
 def build_classification_loss(class_weights: torch.Tensor, device: torch.device) -> nn.CrossEntropyLoss:
-    return nn.CrossEntropyLoss(weight=class_weights.to(device=device, dtype=torch.float32))
+    return nn.CrossEntropyLoss(weight=class_weights.to(device=device, dtype=torch.float32) if class_weights is not None else None)
 
 
 def branch_classification_loss(output, labels, criterion, image_weight=0.0, knowledge_weight=0.0):

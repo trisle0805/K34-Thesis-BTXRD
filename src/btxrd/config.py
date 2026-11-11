@@ -59,6 +59,13 @@ def migrate_config(data: dict[str, Any]) -> dict[str, Any]:
     """Supply architecture/protocol defaults absent from pre-R1 checkpoints."""
     result = deepcopy(data)
     model = result['model']
+    model.setdefault('use_pecl', False)
+    result['loss'].setdefault('class_weighting', 'csv')
+    result['loss'].setdefault('pecl_weight', 0.0)
+    result['loss'].setdefault('pecl_temperature', 0.07)
+    result['data'].setdefault('sampler', 'none')
+    for key in ('hflip_p', 'brightness', 'contrast'):
+        result['data']['augmentation'].setdefault(key, 0.0)
     model.setdefault('knowledge_decoder', 'global')
     model.setdefault('residual_knowledge_logits', False)
     model.setdefault('skelex', {'model_name': 'skhoha/SKELEX', 'vit_config': None,
@@ -165,13 +172,26 @@ def validate_config(data: dict[str, Any], schema: dict[str, Any] | None = None, 
     if permutation_seed is not None:
         if isinstance(permutation_seed, bool) or not isinstance(permutation_seed, int) or permutation_seed < 0:
             raise ValueError('knowledge.embedding_permutation_seed must be null or a non-negative integer')
-        if not model['use_knowledge']:
+        if not (model['use_knowledge'] or model['use_pecl']):
             raise ValueError('Embedding permutation requires knowledge')
+    if model['use_pecl'] and model['use_contrastive']:
+        raise ValueError('PECL and use_contrastive are mutually exclusive')
+    _require_positive('loss.pecl_temperature', loss['pecl_temperature'])
+    _require_positive('loss.pecl_weight', loss['pecl_weight'], allow_zero=True)
+    if model['use_pecl'] != (loss['pecl_weight'] > 0):
+        raise ValueError('PECL flag and positive weight must agree')
+    if data['data']['sampler'] not in {'none', 'sqrt_inverse'} or loss['class_weighting'] not in {'csv', 'train_split', 'none'}:
+        raise ValueError('Invalid sampler or class_weighting')
+    if data['data']['sampler'] == 'sqrt_inverse' and loss['class_weighting'] != 'none':
+        raise ValueError('Sampler and weighted CE would double compensate')
+    aug = data['data']['augmentation']
+    if not 0 <= aug['hflip_p'] <= 1 or any(not 0 <= aug[k] <= 1 for k in ('brightness', 'contrast')):
+        raise ValueError('Invalid augmentation probability or jitter')
     train_cfg = data["train"]
     data_cfg = data["data"]
     metadata = data["metadata"]
 
-    if model['backbone'] not in {'densenet169', 'skelex'}:
+    if model['backbone'] not in {'densenet169', 'skelex', 'resnet50', 'efficientnet_b3', 'vit_b16', 'biomedclip_vitb16'}:
         raise ValueError('Unsupported model.backbone')
     decoder = model.get('knowledge_decoder', 'global')
     if decoder not in {'global', 'class_conditioned'}:
@@ -184,9 +204,9 @@ def validate_config(data: dict[str, Any], schema: dict[str, Any] | None = None, 
         raise ValueError('Invalid knowledge.decoder.scorer')
     if knowledge['decoder']['num_heads'] < 1 or knowledge['dim'] % knowledge['decoder']['num_heads']:
         raise ValueError('knowledge.dim must be divisible by decoder.num_heads')
-    if data_cfg['preprocessing'] not in {'imagenet_gray3', 'skelex_minmax_rgb'}:
+    if data_cfg['preprocessing'] not in {'imagenet_gray3', 'skelex_minmax_rgb', 'clip_gray3'}:
         raise ValueError('Invalid data.preprocessing')
-    if train_cfg['recipe'] not in {'densenet', 'skelex'}:
+    if train_cfg['recipe'] not in {'densenet', 'skelex', 'vit'}:
         raise ValueError('Invalid train.recipe')
     if not isinstance(train_cfg['grad_accum'], int) or train_cfg['grad_accum'] < 1:
         raise ValueError('train.grad_accum must be a positive integer')
@@ -232,10 +252,12 @@ def validate_config(data: dict[str, Any], schema: dict[str, Any] | None = None, 
     if metadata["features"] != ["age", "gender", "region", "view"]:
         raise ValueError("metadata.features must be [age, gender, region, view]")
 
-    required_paths = ["image_dir", "splits_csv", "class_weights_csv", "output_dir"]
+    required_paths = ["image_dir", "splits_csv", "output_dir"]
+    if loss["class_weighting"] == "csv":
+        required_paths.append("class_weights_csv")
     if model["use_metadata"]:
         required_paths.append("metadata_csv")
-    if model["use_knowledge"] and require_training_assets:
+    if (model["use_knowledge"] or model["use_pecl"]) and require_training_assets:
         required_paths.extend(["kb_json", "text_embedding_cache"])
     missing = [name for name in required_paths if not data["paths"].get(name)]
     if missing:
@@ -269,6 +291,8 @@ def load_config(
         for field, value in recipe[section].items():
             if data[section].get(field) == 'auto':
                 data[section][field] = deepcopy(value)
+    if data["model"]["backbone"] == "biomedclip_vitb16":
+        data["data"]["preprocessing"] = "clip_gray3"
     if data["run"]["name"] is None:
         data["run"]["name"] = path.stem
     validate_config(data, schema, require_training_assets=require_training_assets)

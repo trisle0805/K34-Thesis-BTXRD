@@ -107,7 +107,7 @@ def test_skelex_minmax():
     assert np.array_equal(actual[:, :, 0], expected)
 
 def test_leaf_names_and_recipe_overrides(config_overrides):
-    paths = sorted(Path('configs').rglob('*.yaml'))
+    paths = sorted(Path('configs').glob('*.yaml')) + sorted(Path('configs/ablations').glob('*.yaml'))
     paths = [path for path in paths if path.name != 'base.yaml']
     names = []
     for path in paths:

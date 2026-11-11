@@ -182,3 +182,62 @@ frame, extras = predict(cfg, checkpoint_path, return_extras=True)
 ```
 
 `extras` contains spatial cross-attention, learned aggregation weights when applicable, and checkpoint KB IDs. A1 returns `aggregation_weights=None`; B0/B1 return all attention extras and `kb_ids` as `None`.
+
+## Official grouped five-fold CV
+
+`configs\cv` contains five image backbones and A1–A4 (independent PECL,
+class-conditioned decoder with auxiliary CE, their combination, and shuffled
+knowledge). Defaults in existing configs remain unchanged. Optional pretrained
+BiomedCLIP support: `pip install -e ".[biomedclip]"`; HF ViT uses the existing
+`text` extra. Tests never download pretrained weights.
+
+First run `configs\pilot\b0_densenet169_newaug.yaml` on the original fixed
+2510/538/538 split. Compare best validation Macro-F1 with B0's 59.51%:
+accept the new augmentation/sampler only at >=58.51%. If this gate fails,
+use the original affine-only augmentation and `data.sampler=none
+loss.class_weighting=train_split` consistently for **all** CV experiments.
+Do not choose the protocol using outer-test scores.
+
+Create folds from all images (the real protocol expects 3,586):
+
+```powershell
+python scripts\make_cv_folds.py --splits-csv <splits.csv> --groups-csv <groups.csv> --group-col <case-column> --out <cv_folds_8class.csv> --n-folds 5 --inner-val-splits 10 --seed 2026
+```
+
+Groups are heuristic cases, **not verified patient IDs**. Missing groups fail
+by default; `--allow-missing-groups` explicitly assigns singleton groups and
+records them in `<output.csv>_report.json`. The audit includes input/output
+hashes, per-class split counts, leakage checks, and absent-class warnings.
+Use `--label-col` when the original label column is not `class8`.
+
+For each config and fold k=0–4, substitute its name and fold number below.
+Supply local asset paths using `--set` (no storage-specific paths are assumed):
+
+```powershell
+python scripts\train.py --config configs\cv\b0_densenet169.yaml --set paths.splits_csv=<cv_folds_8class.csv> data.columns.split=split_fold0 data.expected_split_counts=null paths.output_dir=<cv-dir>\b0_densenet169 run.name=b0_densenet169_fold0
+python scripts\evaluate.py --config configs\cv\b0_densenet169.yaml --checkpoint <cv-dir>\b0_densenet169\b0_densenet169_fold0\best.pt --split test --out <cv-dir>\b0_densenet169\b0_densenet169_fold0\evaluation --set paths.splits_csv=<cv_folds_8class.csv> data.columns.split=split_fold0 data.expected_split_counts=null
+python scripts\cv_report.py --cv-dir <cv-dir> --folds-csv <cv_folds_8class.csv> --configs b0_densenet169 b_resnet50 b_efficientnet_b3 b_vit_b16 b_biomedclip_vitb16 a1_densenet169_pecl a2_densenet169_kdecoder a3_densenet169_kdecoder_pecl a4_densenet169_kdecoder_pecl_shuffled --out <cv-dir>\_report --n-boot 2000 --seed 2026
+```
+
+The training directory is `paths.output_dir/run.name`. Reporting validates OOF
+coverage against the manifest, skips incomplete configs with warnings, and
+outputs pooled/fold/per-class metrics, confusion matrices, case-cluster bootstrap
+95% CIs and paired comparisons (including Q3 A3-A2). Undefined AUROC bootstrap
+draws are excluded from AUROC intervals. Metrics and differences are fractions,
+not percentages. CI crossing zero means no statistically significant difference.
+
+CV sampling uses replacement with per-image weight `1/sqrt(n_c)` from the
+current training split, with the saved train RNG for resumption. It must be
+paired with unweighted CE. The alternative `train_split` CE uses
+`(1/sqrt(n_c)) / mean_c(1/sqrt(n_c))`; absent training classes are rejected.
+`csv` retains the original supplied weights. Real CSV formula equivalence must
+be checked against the actual preparation artifact (synthetic fixtures have
+unit weights). `run_info.json` records counts and effective balancing weights.
+PECL is an unweighted prototype CE with fixed normalized class prototypes,
+independent of the decoder; it never changes inference fusion.
+
+Synthetic tests cover all ten configurations, RNG-preserving legacy transforms,
+checkpoint prediction/resume paths, backbone shapes/LLRD, grouped folds, and
+paired reporting. Real-data pilot results and bitwise equivalence against
+historical real checkpoints require those external artifacts; synthetic tests
+are not a substitute for that final acceptance check.

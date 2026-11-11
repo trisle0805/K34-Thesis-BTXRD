@@ -1,0 +1,9 @@
+base: _protocol.yaml
+model:
+  backbone: densenet169
+  use_knowledge: true
+  knowledge_decoder: class_conditioned
+  residual_knowledge_logits: true
+loss:
+  aux_image_weight: 1.0
+  aux_knowledge_weight: 1.0

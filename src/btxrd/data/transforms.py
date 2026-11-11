@@ -24,6 +24,11 @@ def _skelex_transform(data_cfg, training):
     return transforms.Compose(items + [transforms.ToTensor(), transforms.Normalize(IMAGENET_MEAN, IMAGENET_STD)])
 
 
+def _normalization(data_cfg):
+    if data_cfg.get('preprocessing') == 'clip_gray3':
+        return transforms.Normalize([0.48145466, 0.4578275, 0.40821073], [0.26862954, 0.26130258, 0.27577711])
+    return transforms.Normalize(IMAGENET_MEAN, IMAGENET_STD)
+
 def build_train_transform(data_cfg):
     if data_cfg.get('preprocessing') == 'skelex_minmax_rgb':
         return _skelex_transform(data_cfg, True)
@@ -33,14 +38,16 @@ def build_train_transform(data_cfg):
     return transforms.Compose(
         [
             transforms.Resize((size, size)),
+            *([transforms.RandomHorizontalFlip(aug.get("hflip_p", 0))] if aug.get("hflip_p", 0) else []),
             transforms.RandomAffine(
                 degrees=get(aug, "degrees"),
                 translate=tuple(get(aug, "translate")),
                 scale=tuple(get(aug, "scale")),
             ),
+            *([transforms.ColorJitter(brightness=aug.get("brightness", 0), contrast=aug.get("contrast", 0))] if aug.get("brightness", 0) or aug.get("contrast", 0) else []),
             transforms.Grayscale(num_output_channels=3),
             transforms.ToTensor(),
-            transforms.Normalize(IMAGENET_MEAN, IMAGENET_STD),
+            _normalization(data_cfg),
         ]
     )
 
@@ -54,6 +61,6 @@ def build_eval_transform(data_cfg):
             transforms.Resize((size, size)),
             transforms.Grayscale(num_output_channels=3),
             transforms.ToTensor(),
-            transforms.Normalize(IMAGENET_MEAN, IMAGENET_STD),
+            _normalization(data_cfg),
         ]
     )

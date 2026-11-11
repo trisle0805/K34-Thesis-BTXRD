@@ -75,7 +75,7 @@ def _validate_resume_config(cfg, checkpoint_config: dict[str, Any]) -> None:
     runtime = cfg.to_dict()
     if cfg.model.backbone == 'skelex':
         runtime['model']['skelex']['vit_config'] = checkpoint_config['model']['skelex']['vit_config']
-    if cfg.train.recipe == 'skelex' and runtime['train']['epochs'] != checkpoint_config['train']['epochs']:
+    if cfg.train.recipe in {'skelex', 'vit'} and runtime['train']['epochs'] != checkpoint_config['train']['epochs']:
         raise ValueError('Resume config differs from checkpoint at: train.epochs (SKELEX horizon is locked)')
     required_keys = (*_ARCHITECTURE_KEYS, *_RESUME_PROTOCOL_KEYS)
     required_mismatches = {
@@ -136,13 +136,15 @@ def _prepare_run_dir(cfg) -> Path:
 
 
 def _build_model_inputs(cfg, checkpoint: dict[str, Any] | None = None):
-    if not cfg.model.use_knowledge:
+    if not (cfg.model.use_knowledge or cfg.get_path('model.use_pecl', False)):
         return None, None, None, None
     if checkpoint is not None and "text_embeddings" in checkpoint.get("model_buffers", {}):
         embeddings = checkpoint["model_buffers"]["text_embeddings"]
         kb_ids = checkpoint.get("kb_ids")
         class_to_ids = checkpoint.get("class_to_ids")
-        if kb_ids is None or (cfg.model.use_contrastive and class_to_ids is None):
+        needs_mapping = (cfg.model.use_contrastive or cfg.get_path('model.use_pecl', False)
+                         or cfg.get_path('model.knowledge_decoder', 'global') == 'class_conditioned')
+        if kb_ids is None or (needs_mapping and class_to_ids is None):
             raise ValueError("Knowledge checkpoint is missing kb_ids/class_to_ids")
         return embeddings, kb_ids, class_to_ids, checkpoint.get("kb_sha256")
     kb = load_kb(cfg.paths.kb_json, cfg.knowledge.exclude_ids, CLASS_NAMES)
@@ -184,6 +186,12 @@ def _run_epoch(model, loader, device, ce_loss, con_loss, cfg, optimizer=None, sc
             else:
                 loss_con = loss_ce.new_zeros(())
             loss_total = supervised + cfg.loss.contrastive_weight * loss_con
+            if cfg.get_path('model.use_pecl', False):
+                loss_pecl = torch.nn.functional.cross_entropy(
+                    output['pecl_u'] @ model.pecl_prototypes.T / cfg.loss.pecl_temperature, labels)
+                loss_total = loss_total + cfg.loss.pecl_weight * loss_pecl
+            else:
+                loss_pecl = None
         if training:
             scaler.scale(loss_total / accum).backward()
             if batch_index % accum == 0 or batch_index == len(loader):
@@ -196,6 +204,9 @@ def _run_epoch(model, loader, device, ce_loss, con_loss, cfg, optimizer=None, sc
                 if scheduler is not None:
                     scheduler.step()
         count = labels.shape[0]
+        if loss_pecl is not None:
+            totals.setdefault('loss_pecl', 0.0)
+            totals['loss_pecl'] += float(loss_pecl.detach()) * count
         sample_count += count
         totals["loss_ce"] += float(loss_ce.detach()) * count
         if branch_ce:
@@ -238,7 +249,7 @@ def train(cfg) -> dict[str, Any]:
     metadata_stats = resume_checkpoint.get("metadata_stats") if resume_checkpoint else None
     generator_state = resume_checkpoint.get("train_generator_state") if resume_checkpoint else None
     data = build_dataloaders(cfg, ("train", "val"), metadata_stats, generator_state)
-    if resume_checkpoint and cfg.train.recipe == 'skelex' and resume_checkpoint.get('train_batches') != len(data.loaders['train']):
+    if resume_checkpoint and cfg.train.recipe in {'skelex', 'vit'} and resume_checkpoint.get('train_batches') != len(data.loaders['train']):
         raise ValueError('SKELEX resume requires unchanged train loader steps')
     embeddings, kb_ids, class_to_ids, kb_sha256 = _build_model_inputs(cfg, resume_checkpoint)
     if resume_checkpoint and cfg.model.backbone == 'skelex':
@@ -278,10 +289,10 @@ def train(cfg) -> dict[str, Any]:
     for epoch in range(start_epoch, cfg.train.epochs):
         lr = optimizer.param_groups[0]["lr"]
         train_metrics = _run_epoch(model, data.loaders["train"], device, ce_loss, con_loss, cfg, optimizer, scaler,
-                       scheduler if cfg.train.recipe == 'skelex' else None)
+                       scheduler if cfg.train.recipe in {'skelex', 'vit'} else None)
         val_metrics = _run_epoch(model, data.loaders["val"], device, ce_loss, con_loss, cfg)
         row = {"epoch": epoch, "lr": lr}
-        if cfg.train.recipe == 'skelex':
+        if cfg.train.recipe in {'skelex', 'vit'}:
             row['lr'] = max(optimizer.param_groups, key=lambda group: group['layer_id'])['lr']
         if hasattr(model, 'knowledge_logit_scale'):
             row['knowledge_logit_scale'] = float(model.knowledge_logit_scale.detach())
@@ -337,15 +348,18 @@ def train(cfg) -> dict[str, Any]:
         "epochs_ran": len(history),
         "stopped_early": stopped_early,
     }
-    used_files = ["splits_csv", "class_weights_csv"]
+    used_files = ["splits_csv"]
+    if cfg.loss.class_weighting == "csv":
+        used_files.append("class_weights_csv")
     if cfg.model.use_metadata:
         used_files.append("metadata_csv")
-    if cfg.model.use_knowledge:
+    if cfg.model.use_knowledge or cfg.model.use_pecl:
         used_files.extend(["kb_json", "text_embedding_cache"])
     info = {
-        'knowledge_permuted': bool(cfg.model.use_knowledge and cfg.knowledge.embedding_permutation_seed is not None),
+        'knowledge_permuted': bool((cfg.model.use_knowledge or cfg.model.use_pecl) and cfg.knowledge.embedding_permutation_seed is not None),
         'knowledge_embedding_source_ids': (permute_embeddings(
             embeddings, kb_ids, cfg.knowledge.embedding_permutation_seed)[1] if kb_ids else {}),
+        **data.balance_info,
         **result,
         "duration_seconds": time.time() - started,
         "git_commit": git_commit(Path(__file__).resolve()),

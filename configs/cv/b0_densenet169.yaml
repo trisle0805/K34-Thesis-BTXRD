@@ -1,0 +1,3 @@
+base: _protocol.yaml
+model:
+  backbone: densenet169

@@ -52,13 +52,86 @@ class SKELEXEncoder(nn.Module):
             self.vit = ViTModel(ViTConfig(**dict(cfg.model.skelex.test_config)), add_pooling_layer=False)
         self.token_dim = self.global_dim = self.vit.config.hidden_size
 
+    @property
+    def num_layers(self):
+        return self.vit.config.num_hidden_layers
+
+    def layer_id(self, name):
+        import re
+        if '.embeddings.' in name:
+            return 0
+        match = re.search(r'(?:encoder\.layer|layers)\.(\d+)\.', name)
+        return int(match.group(1)) + 1 if match else self.num_layers + 1
+
     def forward(self, image):
         hidden = self.vit(pixel_values=image).last_hidden_state
         size = self.vit.config.image_size // self.vit.config.patch_size
         return EncoderOutput(hidden[:, 1:], hidden[:, 0], (size, size))
 
 
+class CNNEncoder(nn.Module):
+    def __init__(self, backbone, pretrained=True):
+        super().__init__()
+        from torchvision import models
+        if backbone == 'resnet50':
+            net = models.resnet50(weights=models.ResNet50_Weights.IMAGENET1K_V2 if pretrained else None)
+            self.features = nn.Sequential(*list(net.children())[:-2])
+            self.token_dim = self.global_dim = 2048
+        else:
+            net = models.efficientnet_b3(weights=models.EfficientNet_B3_Weights.IMAGENET1K_V1 if pretrained else None)
+            self.features = net.features
+            self.token_dim = self.global_dim = 1536
+
+    def forward(self, image):
+        features = self.features(image)
+        return EncoderOutput(features.flatten(2).transpose(1, 2), features.mean((2, 3)), tuple(features.shape[-2:]))
+
+class ViTEncoder(SKELEXEncoder):
+    def __init__(self, cfg, pretrained=True):
+        nn.Module.__init__(self)
+        from transformers import ViTConfig, ViTModel
+        self.vit = (ViTModel.from_pretrained('google/vit-base-patch16-224', add_pooling_layer=False)
+                    if pretrained else ViTModel(ViTConfig(), add_pooling_layer=False))
+        self.token_dim = self.global_dim = self.vit.config.hidden_size
+
+class BiomedCLIPEncoder(nn.Module):
+    def __init__(self, cfg, pretrained=True):
+        super().__init__()
+        try:
+            import open_clip
+        except ImportError as exc:
+            raise ImportError('BiomedCLIP requires pip install -e .[biomedclip]') from exc
+        if pretrained:
+            model = open_clip.create_model('hf-hub:microsoft/BiomedCLIP-PubMedBERT_256-vit_base_patch16_224')
+            self.trunk = model.visual.trunk
+        else:
+            from timm.models.vision_transformer import VisionTransformer
+            self.trunk = VisionTransformer(img_size=224, patch_size=16, embed_dim=768, depth=12, num_heads=12, num_classes=0)
+        self.token_dim = self.global_dim = 768
+
+    @property
+    def num_layers(self):
+        return len(self.trunk.blocks)
+
+    def layer_id(self, name):
+        import re
+        if any(name.startswith('trunk.' + key) for key in ('patch_embed', 'cls_token', 'pos_embed')):
+            return 0
+        match = re.search(r'blocks\.(\d+)\.', name)
+        return int(match.group(1)) + 1 if match else self.num_layers + 1
+
+    def forward(self, image):
+        hidden = self.trunk.forward_features(image)
+        return EncoderOutput(hidden[:, 1:], hidden[:, 0], (14, 14))
+
 def build_image_encoder(cfg, pretrained, densenet_class=None):
-    if cfg.model.backbone == 'skelex':
+    backbone = cfg.model.backbone
+    if backbone == 'skelex':
         return SKELEXEncoder(cfg, pretrained)
+    if backbone == 'vit_b16':
+        return ViTEncoder(cfg, pretrained)
+    if backbone == 'biomedclip_vitb16':
+        return BiomedCLIPEncoder(cfg, pretrained)
+    if backbone in {'resnet50', 'efficientnet_b3'}:
+        return CNNEncoder(backbone, pretrained)
     return (densenet_class or DenseNet169Encoder)(pretrained=pretrained)

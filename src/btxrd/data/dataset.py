@@ -10,7 +10,7 @@ import numpy as np
 import pandas as pd
 import torch
 from PIL import Image
-from torch.utils.data import DataLoader, Dataset
+from torch.utils.data import DataLoader, Dataset, WeightedRandomSampler
 
 from btxrd.constants import CLASS_NAMES, VALID_SPLITS
 from btxrd.data.metadata import MetadataPreprocessor
@@ -23,6 +23,7 @@ class DataBundle:
     class_weights: torch.Tensor
     metadata_preprocessor: MetadataPreprocessor | None
     train_generator: torch.Generator | None
+    balance_info: dict
 
 
 class BTXRDDataset(Dataset):
@@ -135,7 +136,7 @@ def build_dataloaders(cfg, splits: tuple[str, ...] = ("train", "val"), metadata_
     if not splits or any(split not in VALID_SPLITS for split in splits):
         raise ValueError(f"Invalid requested splits: {splits}")
     frame = load_splits_frame(cfg)
-    class_weights = load_class_weights(cfg)
+    class_weights = load_class_weights(cfg) if cfg.loss.class_weighting == "csv" else None
     columns = cfg.data.columns.to_dict()
     split_col = columns["split"]
     if cfg.model.use_metadata:
@@ -149,6 +150,17 @@ def build_dataloaders(cfg, splits: tuple[str, ...] = ("train", "val"), metadata_
         if limit is not None:
             subset = subset.head(int(limit)).reset_index(drop=True)
         split_frames[split] = subset
+
+    train_frame = split_frames.get('train', frame[frame[split_col] == 'train'])
+    counts = train_frame[columns['label']].value_counts().reindex(CLASS_NAMES, fill_value=0)
+    inverse = counts.clip(lower=1).to_numpy(dtype=float) ** -0.5
+    if cfg.loss.class_weighting == 'train_split':
+        if (counts == 0).any():
+            raise ValueError('train_split weighting requires every class in train')
+        class_weights = torch.tensor(inverse / inverse.mean(), dtype=torch.float32)
+    balance_info = {'train_class_counts': counts.to_dict(),
+                    'ce_class_weights': class_weights.tolist() if class_weights is not None else None,
+                    'sampler_class_weights': dict(zip(CLASS_NAMES, inverse.tolist())) if cfg.data.sampler == 'sqrt_inverse' else None}
 
     preprocessor: MetadataPreprocessor | None = None
     encoded: dict[str, np.ndarray | None] = {split: None for split in splits}
@@ -179,13 +191,18 @@ def build_dataloaders(cfg, splits: tuple[str, ...] = ("train", "val"), metadata_
             train_transform if split == "train" else eval_transform,
             encoded[split],
         )
+        sampler = None
+        if split == 'train' and cfg.data.sampler == 'sqrt_inverse':
+            sample_weights = subset[columns['label']].map(dict(zip(CLASS_NAMES, inverse))).tolist()
+            sampler = WeightedRandomSampler(sample_weights, len(subset), replacement=True, generator=generator)
         loaders[split] = DataLoader(
             dataset,
             batch_size=cfg.data.batch_size,
-            shuffle=split == "train",
+            shuffle=split == "train" and sampler is None,
+            sampler=sampler,
             generator=generator if split == "train" else None,
             num_workers=cfg.data.num_workers,
             pin_memory=cfg.data.pin_memory,
             persistent_workers=cfg.data.num_workers > 0,
         )
-    return DataBundle(loaders, class_weights, preprocessor, generator)
+    return DataBundle(loaders, class_weights, preprocessor, generator, balance_info)

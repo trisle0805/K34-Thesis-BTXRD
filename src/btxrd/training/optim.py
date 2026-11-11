@@ -14,18 +14,13 @@ def build_optimizer(model, cfg):
             groups.append({'params': beta, 'weight_decay': 0.0})
         return torch.optim.Adam(groups, lr=cfg.train.lr, weight_decay=cfg.train.weight_decay,
                     betas=tuple(cfg.train.betas))
-    layers = model.image_encoder.vit.config.num_hidden_layers
+    layers = model.image_encoder.num_layers
     groups = {}
     backbone_layer_ids = set()
     for name, parameter in parameters:
         layer = layers + 2
-        if name.startswith('image_encoder.vit.'):
-            if '.embeddings.' in name:
-                layer = 0
-            elif match := re.search(r'(?:encoder\.layer|layers)\.(\d+)\.', name):
-                layer = int(match.group(1)) + 1
-            else:
-                layer = layers + 1
+        if name.startswith('image_encoder.'):
+            layer = model.image_encoder.layer_id(name.removeprefix('image_encoder.'))
             backbone_layer_ids.add(layer)
         decay = 0.0 if parameter.ndim <= 1 or name.endswith('.bias') or 'layernorm' in name else cfg.train.weight_decay
         group = groups.setdefault((layer, decay), {'params': [], 'layer_id': layer, 'weight_decay': decay,

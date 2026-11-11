@@ -20,6 +20,7 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
+biomedclip = ["open_clip_torch"]
 text = ["transformers>=4.30"]
 dev = ["pytest>=7"]
 

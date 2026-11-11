@@ -1,0 +1,10 @@
+base: ../base.yaml
+data:
+  expected_split_counts: null
+  augmentation:
+    hflip_p: 0.5
+    brightness: 0.1
+    contrast: 0.1
+  sampler: sqrt_inverse
+loss:
+  class_weighting: none

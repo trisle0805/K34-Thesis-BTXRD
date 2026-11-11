@@ -1,9 +1,7 @@
 run:
   name: null
   overwrite: false
-
 seed: 2026
-
 paths:
   image_dir: null
   splits_csv: null
@@ -12,7 +10,6 @@ paths:
   kb_json: null
   text_embedding_cache: null
   output_dir: null
-
 data:
   preprocessing: auto
   columns:
@@ -26,31 +23,58 @@ data:
     view: view
   image_ext: .png
   input_size: 224
-  expected_split_counts: {train: 2510, val: 538, test: 538}
+  expected_split_counts:
+    train: 2510
+    val: 538
+    test: 538
   augmentation:
     degrees: 7
-    translate: [0.03, 0.03]
-    scale: [0.95, 1.05]
+    translate:
+    - 0.03
+    - 0.03
+    scale:
+    - 0.95
+    - 1.05
+    hflip_p: 0.0
+    brightness: 0.0
+    contrast: 0.0
   batch_size: auto
   num_workers: 2
   pin_memory: true
-
+  sampler: none
 metadata:
-  features: [age, gender, region, view]
+  features:
+  - age
+  - gender
+  - region
+  - view
   categories:
-    gender: [M, F]
-    region: [upper limb, lower limb, pelvis]
-    view: [frontal, lateral, oblique]
+    gender:
+    - M
+    - F
+    region:
+    - upper limb
+    - lower limb
+    - pelvis
+    view:
+    - frontal
+    - lateral
+    - oblique
   hidden: 32
   dropout: 0.2
-
 model:
   knowledge_decoder: global
   residual_knowledge_logits: false
   skelex:
     model_name: skhoha/SKELEX
     vit_config: null
-    test_config: {hidden_size: 32, num_hidden_layers: 2, num_attention_heads: 2, intermediate_size: 64, patch_size: 16, image_size: 224}
+    test_config:
+      hidden_size: 32
+      num_hidden_layers: 2
+      num_attention_heads: 2
+      intermediate_size: 64
+      patch_size: 16
+      image_size: 224
   backbone: densenet169
   pretrained: true
   use_knowledge: false
@@ -62,11 +86,17 @@ model:
     type: linear
     hidden: 512
     dropout: 0.3
-
+  use_pecl: false
 knowledge:
   embedding_permutation_seed: null
-  decoder: {num_heads: 1, scorer: shared, beta_init: 0.1}
-  exclude_ids: [P066, P067, P068]
+  decoder:
+    num_heads: 1
+    scorer: shared
+    beta_init: 0.1
+  exclude_ids:
+  - P066
+  - P067
+  - P068
   text_encoder_name: ncbi/MedCPT-Query-Encoder
   text_encoder_frozen: true
   text_dim: 768
@@ -74,22 +104,73 @@ knowledge:
   num_heads: 4
   attention_dropout: 0.1
   pool_hidden: 128
-
 loss:
   aux_image_weight: 0.0
   aux_knowledge_weight: 0.0
   contrastive_weight: 0.0
   contrastive_temperature: 0.07
-
+  class_weighting: csv
+  pecl_weight: 0.0
+  pecl_temperature: 0.07
 recipes:
-  backbones: {densenet169: densenet, skelex: skelex}
+  backbones:
+    densenet169: densenet
+    skelex: skelex
+    resnet50: densenet
+    efficientnet_b3: densenet
+    vit_b16: vit
+    biomedclip_vitb16: vit
   densenet:
-    train: {epochs: 100, lr: 0.0001, weight_decay: 0.0001, grad_accum: 1, clip_grad_norm: null, warmup_epochs: 5, layer_decay: 0.75, step_size: 25, gamma: 0.1, betas: [0.9, 0.999]}
-    data: {batch_size: 32, preprocessing: imagenet_gray3}
+    train:
+      epochs: 100
+      lr: 0.0001
+      weight_decay: 0.0001
+      grad_accum: 1
+      clip_grad_norm: null
+      warmup_epochs: 5
+      layer_decay: 0.75
+      step_size: 25
+      gamma: 0.1
+      betas:
+      - 0.9
+      - 0.999
+    data:
+      batch_size: 32
+      preprocessing: imagenet_gray3
   skelex:
-    train: {epochs: 50, lr: 0.00005, weight_decay: 0.05, grad_accum: 2, clip_grad_norm: 1.0, warmup_epochs: 5, layer_decay: 0.75, step_size: 25, gamma: 0.1, betas: [0.9, 0.999]}
-    data: {batch_size: 16, preprocessing: skelex_minmax_rgb}
-
+    train:
+      epochs: 50
+      lr: 5.0e-05
+      weight_decay: 0.05
+      grad_accum: 2
+      clip_grad_norm: 1.0
+      warmup_epochs: 5
+      layer_decay: 0.75
+      step_size: 25
+      gamma: 0.1
+      betas:
+      - 0.9
+      - 0.999
+    data:
+      batch_size: 16
+      preprocessing: skelex_minmax_rgb
+  vit:
+    train:
+      epochs: 50
+      lr: 5.0e-05
+      weight_decay: 0.05
+      grad_accum: 2
+      clip_grad_norm: 1.0
+      warmup_epochs: 5
+      layer_decay: 0.75
+      step_size: 25
+      gamma: 0.1
+      betas:
+      - 0.9
+      - 0.999
+    data:
+      batch_size: 16
+      preprocessing: imagenet_gray3
 train:
   recipe: auto
   betas: auto
@@ -103,8 +184,9 @@ train:
   step_size: auto
   gamma: auto
   amp: true
-  early_stopping: {enabled: false, patience: 15}
+  early_stopping:
+    enabled: false
+    patience: 15
   resume: false
-
 debug:
   limit_per_split: null

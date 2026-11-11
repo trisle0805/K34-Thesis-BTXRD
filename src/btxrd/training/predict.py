@@ -92,7 +92,7 @@ def predict(cfg, checkpoint_path: str | Path, split: str = "test", return_extras
         saved = resolved.to_dict()
         saved['model']['skelex']['vit_config'] = checkpoint['vit_config']
         resolved = Config(saved, resolved.source_path)
-    if resolved.model.use_knowledge:
+    if resolved.model.use_knowledge or resolved.model.use_pecl:
         _verify_optional_knowledge(resolved, checkpoint)
         embeddings = checkpoint.get("model_buffers", {}).get("text_embeddings")
         if embeddings is None:

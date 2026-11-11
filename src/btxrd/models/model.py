@@ -62,6 +62,13 @@ class BTXRDModel(nn.Module):
             cfg.model.head.type,
         )
 
+        if cfg.get_path('model.use_pecl', False):
+            if text_embeddings is None or class_to_ids is None or kb_ids is None:
+                raise ValueError('PECL requires embeddings and class mappings')
+            self.register_buffer('pecl_prototypes', build_class_prototypes(text_embeddings, class_to_ids, kb_ids))
+            self.pecl_phi = nn.Linear(self.image_encoder.global_dim, cfg.knowledge.text_dim)
+            self.register_buffer('pecl_text_embeddings', text_embeddings.detach().clone())
+
         if cfg.model.use_contrastive:
             if class_to_ids is None or kb_ids is None or text_embeddings is None:
                 raise ValueError("class_to_ids and kb_ids are required for contrastive initialization")
@@ -79,6 +86,8 @@ class BTXRDModel(nn.Module):
             spatial_shape = None
         fusion_features = [z_img]
         result: dict[str, torch.Tensor | None] = {"z_img": z_img}
+        if hasattr(self, 'pecl_phi'):
+            result['pecl_u'] = F.normalize(self.pecl_phi(z_img), dim=-1)
         if self.use_metadata:
             if meta is None or self.metadata_mlp is None:
                 raise ValueError("Metadata tensor is required for this model")
@@ -113,7 +122,7 @@ class BTXRDModel(nn.Module):
 
     def checkpoint_buffers(self) -> dict[str, Any]:
         if self.cross_attention is None:
-            return {}
+            return {'text_embeddings': self.pecl_text_embeddings.detach().cpu()} if hasattr(self, 'pecl_text_embeddings') else {}
         buffers: dict[str, Any] = {"text_embeddings": self.cross_attention.text_emb.detach().cpu()}
         if hasattr(self, "prototypes"):
             buffers["prototypes"] = self.prototypes.detach().cpu()

@@ -1,0 +1,9 @@
+base: ../b0_image.yaml
+data:
+  augmentation:
+    hflip_p: 0.5
+    brightness: 0.1
+    contrast: 0.1
+  sampler: sqrt_inverse
+loss:
+  class_weighting: none

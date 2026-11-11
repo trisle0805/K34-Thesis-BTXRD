@@ -1,0 +1,6 @@
+base: _protocol.yaml
+model:
+  backbone: densenet169
+  use_pecl: true
+loss:
+  pecl_weight: 0.1
