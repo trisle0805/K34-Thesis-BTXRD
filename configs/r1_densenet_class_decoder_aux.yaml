@@ -1,0 +1,4 @@
+base: r1_densenet_class_decoder.yaml
+loss:
+  aux_image_weight: 1.0
+  aux_knowledge_weight: 1.0

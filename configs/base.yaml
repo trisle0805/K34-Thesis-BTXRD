@@ -64,6 +64,7 @@ model:
     dropout: 0.3
 
 knowledge:
+  embedding_permutation_seed: null
   decoder: {num_heads: 1, scorer: shared, beta_init: 0.1}
   exclude_ids: [P066, P067, P068]
   text_encoder_name: ncbi/MedCPT-Query-Encoder
@@ -75,6 +76,8 @@ knowledge:
   pool_hidden: 128
 
 loss:
+  aux_image_weight: 0.0
+  aux_knowledge_weight: 0.0
   contrastive_weight: 0.0
   contrastive_temperature: 0.07
 

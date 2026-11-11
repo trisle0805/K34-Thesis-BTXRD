@@ -19,6 +19,8 @@ from btxrd.data.dataset import build_dataloaders
 from btxrd.knowledge.kb import load_kb
 from btxrd.knowledge.text_encoder import load_text_embeddings
 from btxrd.losses.classification import build_classification_loss
+from btxrd.losses.classification import branch_classification_loss
+from btxrd.knowledge.permutation import permute_embeddings
 from btxrd.losses.contrastive import PrototypeContrastiveLoss
 from btxrd.models.model import BTXRDModel
 from btxrd.training.checkpoint import load_checkpoint, save_checkpoint
@@ -149,6 +151,7 @@ def _build_model_inputs(cfg, checkpoint: dict[str, Any] | None = None):
         kb,
         cfg.knowledge.text_encoder_name,
     )
+    embeddings, _ = permute_embeddings(embeddings, kb.ids, cfg.knowledge.embedding_permutation_seed)
     return embeddings, kb.ids, kb.class_to_ids, kb.sha256
 
 
@@ -159,6 +162,7 @@ def _run_epoch(model, loader, device, ce_loss, con_loss, cfg, optimizer=None, sc
     sample_count = 0
     y_true: list[int] = []
     y_pred: list[int] = []
+    branch_predictions = {key: [] for key in ('img', 'kb', 'avg')}
     accum = cfg.train.grad_accum
     if training:
         optimizer.zero_grad(set_to_none=True)
@@ -173,12 +177,13 @@ def _run_epoch(model, loader, device, ce_loss, con_loss, cfg, optimizer=None, sc
         grad_context = torch.enable_grad() if training else torch.no_grad()
         with grad_context, context:
             output = model(image, metadata)
-            loss_ce = ce_loss(output["logits"], labels)
+            supervised, loss_ce, branch_ce = branch_classification_loss(
+                output, labels, ce_loss, cfg.loss.aux_image_weight, cfg.loss.aux_knowledge_weight)
             if cfg.model.use_contrastive:
                 loss_con = con_loss(output["u"], getattr(model, "prototypes"), labels, cfg.loss.contrastive_temperature)
             else:
                 loss_con = loss_ce.new_zeros(())
-            loss_total = loss_ce + cfg.loss.contrastive_weight * loss_con
+            loss_total = supervised + cfg.loss.contrastive_weight * loss_con
         if training:
             scaler.scale(loss_total / accum).backward()
             if batch_index % accum == 0 or batch_index == len(loader):
@@ -193,6 +198,17 @@ def _run_epoch(model, loader, device, ce_loss, con_loss, cfg, optimizer=None, sc
         count = labels.shape[0]
         sample_count += count
         totals["loss_ce"] += float(loss_ce.detach()) * count
+        if branch_ce:
+            totals.setdefault('loss_ce_final', 0.0)
+            totals['loss_ce_final'] += float(loss_ce.detach()) * count
+            for key, value in branch_ce.items():
+                totals.setdefault(f'loss_ce_{key}', 0.0)
+                totals[f'loss_ce_{key}'] += float(value.detach()) * count
+            if not training:
+                logits = {key: output[f'logits_{key}'].detach() for key in ('img', 'kb')}
+                logits['avg'] = (logits['img'] + logits['kb']) / 2
+                for key, value in logits.items():
+                    branch_predictions[key].extend(value.argmax(1).cpu().tolist())
         totals["loss_con"] += float(loss_con.detach()) * count
         totals["loss_total"] += float(loss_total.detach()) * count
         y_true.extend(labels.detach().cpu().tolist())
@@ -200,6 +216,9 @@ def _run_epoch(model, loader, device, ce_loss, con_loss, cfg, optimizer=None, sc
     if sample_count == 0:
         raise ValueError("Cannot run an epoch with an empty dataloader")
     metrics = compute_metrics(y_true, y_pred)
+    for key, predictions in branch_predictions.items():
+        if predictions:
+            metrics[f'macro_f1_{key}'] = compute_metrics(y_true, predictions)['macro_f1']
     return {**{key: value / sample_count for key, value in totals.items()}, **metrics}
 
 
@@ -324,6 +343,9 @@ def train(cfg) -> dict[str, Any]:
     if cfg.model.use_knowledge:
         used_files.extend(["kb_json", "text_embedding_cache"])
     info = {
+        'knowledge_permuted': bool(cfg.model.use_knowledge and cfg.knowledge.embedding_permutation_seed is not None),
+        'knowledge_embedding_source_ids': (permute_embeddings(
+            embeddings, kb_ids, cfg.knowledge.embedding_permutation_seed)[1] if kb_ids else {}),
         **result,
         "duration_seconds": time.time() - started,
         "git_commit": git_commit(Path(__file__).resolve()),

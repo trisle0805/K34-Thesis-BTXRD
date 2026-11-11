@@ -116,7 +116,7 @@ def test_leaf_names_and_recipe_overrides(config_overrides):
         assert cfg.run.name == path.stem
         names.append(cfg.run.name)
         assert load_config(path, config_overrides(run_name='notebook')).run.name == 'notebook'
-    assert len(set(names)) == 8
+    assert len(set(names)) == 10
     cfg = load_config('configs/r1_skelex_class_decoder.yaml', config_overrides(**{
         'train.early_stopping.enabled': True, 'train.lr': 0.002,
         'train.warmup_epochs': 3, 'recipes.skelex.train.epochs': 17}))

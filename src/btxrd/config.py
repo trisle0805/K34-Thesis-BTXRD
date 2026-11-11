@@ -65,6 +65,9 @@ def migrate_config(data: dict[str, Any]) -> dict[str, Any]:
         'test_config': {'hidden_size': 32, 'num_hidden_layers': 2, 'num_attention_heads': 2,
                         'intermediate_size': 64, 'patch_size': 16, 'image_size': 224}})
     result['knowledge'].setdefault('decoder', {'num_heads': 1, 'scorer': 'shared', 'beta_init': 0.1})
+    result['knowledge'].setdefault('embedding_permutation_seed', None)
+    result['loss'].setdefault('aux_image_weight', 0.0)
+    result['loss'].setdefault('aux_knowledge_weight', 0.0)
     result['data'].setdefault('preprocessing', 'imagenet_gray3')
     recipes = _read_with_bases(Path(__file__).resolve().parents[2] / 'configs' / 'base.yaml')['recipes']
     recipe_name = recipes['backbones'][model['backbone']]
@@ -153,6 +156,17 @@ def validate_config(data: dict[str, Any], schema: dict[str, Any] | None = None, 
     model = data["model"]
     knowledge = data["knowledge"]
     loss = data["loss"]
+    for key in ('aux_image_weight', 'aux_knowledge_weight'):
+        _require_positive(f'loss.{key}', loss[key], allow_zero=True)
+        if loss[key] > 0 and not (data['model']['knowledge_decoder'] == 'class_conditioned'
+                                  and data['model']['residual_knowledge_logits']):
+            raise ValueError('Positive auxiliary weights require class_conditioned residual_knowledge_logits')
+    permutation_seed = knowledge['embedding_permutation_seed']
+    if permutation_seed is not None:
+        if isinstance(permutation_seed, bool) or not isinstance(permutation_seed, int) or permutation_seed < 0:
+            raise ValueError('knowledge.embedding_permutation_seed must be null or a non-negative integer')
+        if not model['use_knowledge']:
+            raise ValueError('Embedding permutation requires knowledge')
     train_cfg = data["train"]
     data_cfg = data["data"]
     metadata = data["metadata"]

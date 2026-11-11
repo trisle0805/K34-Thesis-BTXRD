@@ -15,6 +15,7 @@ from btxrd.constants import CLASS_NAMES
 from btxrd.data.dataset import build_dataloaders
 from btxrd.knowledge.kb import load_kb
 from btxrd.knowledge.text_encoder import load_text_embeddings
+from btxrd.knowledge.permutation import permute_embeddings
 from btxrd.models.model import BTXRDModel
 from btxrd.training.checkpoint import load_checkpoint
 
@@ -76,6 +77,7 @@ def _verify_optional_knowledge(cfg, checkpoint: dict[str, Any]) -> None:
             raise ValueError("Provided KB does not match checkpoint kb_ids/sha256")
         if cache_path:
             cached = load_text_embeddings(cache_path, kb, cfg.knowledge.text_encoder_name)
+            cached, _ = permute_embeddings(cached, kb.ids, cfg.knowledge.embedding_permutation_seed)
             expected = checkpoint["model_buffers"]["text_embeddings"]
             if cached.shape != expected.shape or not torch.equal(cached, expected):
                 raise ValueError("Provided text embedding cache does not match checkpoint embeddings")
@@ -155,4 +157,6 @@ def predict(cfg, checkpoint_path: str | Path, split: str = "test", return_extras
         "kb_ids": checkpoint.get("kb_ids") if resolved.model.use_knowledge else None,
     }
     extras.update({key: np.concatenate(values) for key, values in decoder_extras.items() if values})
+    if hasattr(model, 'knowledge_logit_scale'):
+        extras['beta'] = model.knowledge_logit_scale.detach().cpu().numpy()
     return frame, extras
