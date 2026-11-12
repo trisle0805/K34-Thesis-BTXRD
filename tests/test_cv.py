@@ -198,6 +198,7 @@ def test_transformer_shapes_and_llrd(backbone, config_overrides, monkeypatch):
             def __init__(self):
                 super().__init__()
                 self.patch_embed = nn.Linear(3, 768)
+                self.patch_embed.patch_size = (16, 16)
                 self.cls_token = nn.Parameter(torch.zeros(1, 1, 768))
                 self.pos_embed = nn.Parameter(torch.zeros(1, 197, 768))
                 self.blocks = nn.ModuleList([nn.Linear(768, 768), nn.Linear(768, 768)])

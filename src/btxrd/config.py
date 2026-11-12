@@ -210,8 +210,10 @@ def validate_config(data: dict[str, Any], schema: dict[str, Any] | None = None, 
         raise ValueError('Invalid train.recipe')
     if not isinstance(train_cfg['grad_accum'], int) or train_cfg['grad_accum'] < 1:
         raise ValueError('train.grad_accum must be a positive integer')
-    if data_cfg["input_size"] != 224:
-        raise ValueError("data.input_size must be 224")
+    input_size = data_cfg['input_size']
+    divisor = 16 if model['backbone'] in {'skelex', 'vit_b16', 'biomedclip_vitb16'} else 32
+    if isinstance(input_size, bool) or not isinstance(input_size, int) or input_size <= 0 or input_size % divisor:
+        raise ValueError(f'data.input_size must be a positive integer divisible by {divisor}')
     if knowledge["text_dim"] != 768:
         raise ValueError("knowledge.text_dim must be 768")
     if knowledge["text_encoder_frozen"] is not True:

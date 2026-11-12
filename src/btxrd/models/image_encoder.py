@@ -64,9 +64,11 @@ class SKELEXEncoder(nn.Module):
         return int(match.group(1)) + 1 if match else self.num_layers + 1
 
     def forward(self, image):
-        hidden = self.vit(pixel_values=image).last_hidden_state
-        size = self.vit.config.image_size // self.vit.config.patch_size
-        return EncoderOutput(hidden[:, 1:], hidden[:, 0], (size, size))
+        hidden = self.vit(pixel_values=image, interpolate_pos_encoding=True).last_hidden_state
+        patch_size = self.vit.config.patch_size
+        patch_h, patch_w = (patch_size, patch_size) if isinstance(patch_size, int) else patch_size
+        return EncoderOutput(hidden[:, 1:], hidden[:, 0],
+                             (image.shape[-2] // patch_h, image.shape[-1] // patch_w))
 
 
 class CNNEncoder(nn.Module):
@@ -104,9 +106,14 @@ class BiomedCLIPEncoder(nn.Module):
         if pretrained:
             model = open_clip.create_model('hf-hub:microsoft/BiomedCLIP-PubMedBERT_256-vit_base_patch16_224')
             self.trunk = model.visual.trunk
+            from timm.layers import Format
+            self.trunk.dynamic_img_size = True
+            self.trunk.patch_embed.strict_img_size = False
+            self.trunk.patch_embed.flatten = False
+            self.trunk.patch_embed.output_fmt = Format.NHWC
         else:
             from timm.models.vision_transformer import VisionTransformer
-            self.trunk = VisionTransformer(img_size=224, patch_size=16, embed_dim=768, depth=12, num_heads=12, num_classes=0)
+            self.trunk = VisionTransformer(img_size=224, patch_size=16, embed_dim=768, depth=12, num_heads=12, num_classes=0, dynamic_img_size=True)
         self.token_dim = self.global_dim = 768
 
     @property
@@ -122,7 +129,12 @@ class BiomedCLIPEncoder(nn.Module):
 
     def forward(self, image):
         hidden = self.trunk.forward_features(image)
-        return EncoderOutput(hidden[:, 1:], hidden[:, 0], (14, 14))
+        patch_size = self.trunk.patch_embed.patch_size
+        patch_h, patch_w = (patch_size, patch_size) if isinstance(patch_size, int) else patch_size
+        grid = (image.shape[-2] // patch_h, image.shape[-1] // patch_w)
+        if grid[0] * grid[1] != hidden.shape[1] - 1:
+            raise ValueError('BiomedCLIP token count does not match the input patch grid')
+        return EncoderOutput(hidden[:, 1:], hidden[:, 0], grid)
 
 def build_image_encoder(cfg, pretrained, densenet_class=None):
     backbone = cfg.model.backbone
