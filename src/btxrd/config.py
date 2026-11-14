@@ -168,7 +168,7 @@ def validate_config(data: dict[str, Any], schema: dict[str, Any] | None = None, 
                 raise ValueError(f'Invalid loss.{key}')
         if data['loss']['class_weighting'] != 'none' or data['text']['max_length'] != 64:
             raise ValueError('kb_multitask requires unweighted CE and length64 text')
-        data['paths'].setdefault('location_csv', str(Path(__file__).resolve().parents[3] / 'kb/location_propositions_v1.csv'))
+        data['paths'].setdefault('location_csv', str(Path(__file__).resolve().parents[2] / 'kb/location_propositions_v1.csv'))
         data['paths'].setdefault('location_labels_csv', 'location_labels_8class.csv')
         if not data['knowledge'].get('location_query_cache') or not all(data['paths'].get(key) for key in ('location_csv', 'location_labels_csv')):
             raise ValueError('kb_multitask requires location definition, embedding cache and labels')
@@ -324,7 +324,7 @@ def load_config(
     schema = _read_with_bases(root)
 
     if data['model'].get('architecture') == 'kb_multitask':
-        data['paths'].setdefault('location_csv', str(Path(__file__).resolve().parents[3] / 'kb/location_propositions_v1.csv'))
+        data['paths'].setdefault('location_csv', str(Path(__file__).resolve().parents[2] / 'kb/location_propositions_v1.csv'))
         data['paths'].setdefault('location_labels_csv', 'location_labels_8class.csv')
     _apply_overrides(data, overrides)
     if data['train'].get('recipe') == 'auto':

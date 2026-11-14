@@ -1,6 +1,7 @@
 """CPU invariants and full synthetic M1–M4 lifecycle."""
 import json
 import subprocess
+from pathlib import Path
 import pandas as pd
 import pytest
 import torch
@@ -12,6 +13,14 @@ from btxrd.utils.io import sha256_file
 
 NAMES = ['m1_densenet169_kbmt', 'm2_densenet169_kbmt_shuffled',
          'm3_densenet169_kbmt_noloc', 'm4_densenet169_kbmt_nolit']
+
+
+def test_m1_default_location_csv(config_overrides):
+    repo = Path(__file__).resolve().parents[1]
+    cfg = load_config(repo / 'configs/cv/m1_densenet169_kbmt.yaml', config_overrides())
+    location_csv = Path(cfg['paths']['location_csv'])
+    assert location_csv.is_file()
+    assert location_csv.resolve() == repo / 'kb/location_propositions_v1.csv'
 
 
 def test_soft_jaccard():
