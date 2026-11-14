@@ -38,7 +38,7 @@ class BTXRDModel(nn.Module):
                 self.concat = ImageTextConcat()
                 if self.architecture == 'kb_multitask':
                     from btxrd.models.kb_multitask import PropositionBranch
-                    self.proposition_branch = PropositionBranch(text_embeddings, class_to_ids, kb_ids, cfg.multitask.epsilon)
+                    self.proposition_branch = PropositionBranch(text_embeddings, class_to_ids, kb_ids, cfg.loss.soft_label_eps)
             else:
                 raise ValueError('Unknown architecture')
             return
@@ -108,7 +108,7 @@ class BTXRDModel(nn.Module):
             result = self.concat(z_img, text_tokens, text_mask)
             if feature_map.ndim == 4:
                 feature_map = feature_map.flatten(2).transpose(1, 2)
-            result['proposition_scores'] = self.proposition_branch(feature_map, text_tokens, text_mask)
+            result.update(self.proposition_branch(feature_map, text_tokens, text_mask))
             return result
         if self.architecture == 'image_text_concat':
             return self.concat(z_img, text_tokens, text_mask)

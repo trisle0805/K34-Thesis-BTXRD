@@ -10,8 +10,8 @@ from btxrd.models.kb_multitask import soft_targets
 from btxrd.data.locations import LOCATION_IDS, load_locations, location_definition
 from btxrd.utils.io import sha256_file
 
-NAMES = ['m1_densenet169_kb_multitask', 'm2_densenet169_kb_multitask_shuffled',
-         'm3_densenet169_kb_multitask_no_location', 'm4_densenet169_kb_multitask_location_only']
+NAMES = ['m1_densenet169_kbmt', 'm2_densenet169_kbmt_shuffled',
+         'm3_densenet169_kbmt_noloc', 'm4_densenet169_kbmt_nolit']
 
 
 def test_soft_jaccard():
@@ -23,6 +23,55 @@ def test_soft_jaccard():
     assert matrix[1, 2] == .1 and matrix[1, 1] == .9
     assert torch.equal(matrix[0], torch.eye(8)[0])
     assert torch.equal(soft_targets(mapping, 0), torch.eye(8))
+
+@pytest.mark.parametrize('name', [
+    'b0_densenet169', 'a1_densenet169_pecl', 'a2_densenet169_kdecoder',
+    'a3_densenet169_kdecoder_pecl', 'a4_densenet169_kdecoder_pecl_shuffled',
+    'k0_densenet169_imgtxt', 'k1_densenet169_pg', 'k2_densenet169_pg_shuffled'])
+def test_full_legacy_model_equality(name, config_overrides, monkeypatch):
+    """Compare complete model state and every output to pre-multitask sources.
+
+    Both models use the same synthetic encoder, not pretrained DenseNet weights.
+    """
+    import types
+    import sys
+    from test_integration import TinyImageEncoder
+    from btxrd.models.model import BTXRDModel
+    from btxrd.training.trainer import _build_model_inputs
+    monkeypatch.setattr(TinyImageEncoder, 'global_dim', 1664, raising=False)
+    monkeypatch.setattr('btxrd.models.model.DenseNet169Encoder', TinyImageEncoder)
+    module = types.ModuleType('btxrd.models._legacy_reference')
+    module.__package__ = 'btxrd.models'
+    monkeypatch.setitem(sys.modules, module.__name__, module)
+    original = subprocess.check_output(['git', 'show', '61b0623:src/btxrd/models/model.py'], text=True)
+    exec(compile(original, 'legacy_model.py', 'exec'), module.__dict__)
+    module.DenseNet169Encoder = TinyImageEncoder
+    pg_reference = types.ModuleType('btxrd.models.proposition_guided')
+    pg_source = subprocess.check_output(['git', 'show', '61b0623:src/btxrd/models/proposition_guided.py'], text=True)
+    exec(compile(pg_source, 'legacy_proposition_guided.py', 'exec'), pg_reference.__dict__)
+    cfg = load_config(f'configs/cv/{name}.yaml', config_overrides())
+    embeddings, ids, mapping, _ = _build_model_inputs(cfg)
+    torch.manual_seed(42)
+    with monkeypatch.context() as context:
+        context.setitem(sys.modules, 'btxrd.models.proposition_guided', pg_reference)
+        reference = module.BTXRDModel(cfg, embeddings, mapping, ids, pretrained=False).eval()
+    torch.manual_seed(42)
+    actual = BTXRDModel(cfg, embeddings, mapping, ids, pretrained=False).eval()
+    assert actual.state_dict().keys() == reference.state_dict().keys()
+    for key, value in reference.state_dict().items():
+        assert torch.equal(value, actual.state_dict()[key]), key
+    image = torch.randn(2, 3, 32, 32)
+    kwargs = {}
+    if name.startswith('k'):
+        kwargs = dict(text_tokens=torch.randn(2, 4, 768), text_mask=torch.ones(2, 4).bool())
+    with torch.no_grad():
+        expected, observed = reference(image, **kwargs), actual(image, **kwargs)
+    assert observed.keys() == expected.keys()
+    for key, value in expected.items():
+        if isinstance(value, torch.Tensor):
+            assert torch.equal(value, observed[key]), key
+        else:
+            assert value == observed[key], key
 
 
 def test_original_attention_exact():
@@ -74,7 +123,7 @@ def test_lifecycle(config_overrides, synthetic_assets, tmp_path, monkeypatch, na
     definition = 'kb/location_propositions_v1.csv'
     torch.save(location_definition(definition) | {'embeddings': torch.randn(15, 768)}, loc_cache)
     changes = {'train.epochs': 1, 'train.amp': False, 'paths.text_csv': str(csv), 'paths.text_token_cache': str(cache),
-               'paths.location_csv': definition, 'paths.location_labels_csv': str(labels), 'paths.location_embedding_cache': str(loc_cache)}
+               'paths.location_csv': definition, 'paths.location_labels_csv': str(labels), 'knowledge.location_query_cache': str(loc_cache)}
     path = f'configs/cv/{name}.yaml'
     def config(**extra):
         return load_config(path, config_overrides(output_dir=tmp_path, run_name=name, **(changes | extra)))
@@ -87,6 +136,9 @@ def test_lifecycle(config_overrides, synthetic_assets, tmp_path, monkeypatch, na
     assert all(torch.equal(value, actual.concat.state_dict()[key]) for key, value in k0.concat.state_dict().items())
     image, tokens, mask = torch.randn(2, 3, 32, 32), torch.randn(2, 4, 768), torch.ones(2, 4).bool()
     first = actual(image, text_tokens=tokens, text_mask=mask)
+    assert first['attn_img'].shape[:3] == (2, 8, 80)
+    assert first['attn_txt'].shape == (2, 8, 80, 4)
+    assert actual.proposition_branch.Q.shape == (80, 768)
     assert torch.equal(first['logits'], k0(image, text_tokens=tokens, text_mask=mask)['logits'])
     with torch.no_grad(): actual.proposition_branch.scorer[-1].weight.add_(10)
     assert torch.equal(first['logits'], actual(image, text_tokens=tokens, text_mask=mask)['logits'])
@@ -95,12 +147,20 @@ def test_lifecycle(config_overrides, synthetic_assets, tmp_path, monkeypatch, na
     train(config(**{'train.epochs': 2, 'train.resume': True}))
     run = tmp_path / name
     history = pd.read_csv(run / 'history.csv')
-    assert len(history) == 2 and 'train_loss_soft_ce' in history
+    assert len(history) == 2
+    for prefix in ('train', 'val'):
+        for key in ('loss_ce_soft', 'loss_ce_hard', 'loss_bce_lit', 'loss_bce_loc', 'loss_total'):
+            assert f'{prefix}_{key}' in history
     prediction, extras = predict(config(), run / 'last.pt', return_extras=True)
     assert extras['proposition_scores'].shape == (len(prediction), 80)
     assert 'auxiliary_metrics' in extras
     info = json.loads((run / 'run_info.json').read_text())
     assert 'soft_targets_sha256' in info
+    import hashlib
+    matrix = torch.tensor(info['soft_targets'], dtype=torch.float32)
+    assert info['soft_targets_sha256'] == hashlib.sha256(matrix.numpy().tobytes()).hexdigest()
+    assert info['sha256']['location_query_cache'] == sha256_file(loc_cache)
+    assert set(info['knowledge_embedding_source_ids']) == {'literature', 'location'}
     import sys
     import numpy as np
     from scripts.evaluate import main
@@ -110,9 +170,16 @@ def test_lifecycle(config_overrides, synthetic_assets, tmp_path, monkeypatch, na
     main()
     with np.load(run / 'eval' / 'proposition_scores_test.npz') as artifact:
         assert artifact['scores'].shape == (8, 80)
-        assert artifact['prop_ids'].tolist()[-15:] == LOCATION_IDS
+        assert artifact['ids'].tolist()[-15:] == LOCATION_IDS
     saved = torch.load(run / 'last.pt', weights_only=False)
     saved['model_state']['proposition_branch.Q'][0, 0] += 1
     torch.save(saved, run / 'corrupt.pt')
     with pytest.raises(ValueError, match='mismatch'):
         predict(config(), run / 'corrupt.pt')
+
+def test_auxiliary_auroc_counts():
+    from btxrd.training.proposition_metrics import auxiliary_auroc
+    result = auxiliary_auroc([[0, 0], [1, 0]], [[.1, .4], [.9, .7]])
+    assert result == dict(auroc=1., valid_columns=[0], valid_column_count=1, sample_count=2)
+    result = auxiliary_auroc(torch.zeros(0, 15), torch.zeros(0, 15))
+    assert result['auroc'] is None and result['valid_column_count'] == result['sample_count'] == 0

@@ -33,7 +33,7 @@ def location_definition(path):
     frame = pd.read_csv(path)
     if list(frame.get('id', [])) != LOCATION_IDS or 'text' not in frame or frame.text.isna().any() or not frame.text.str.strip().ne('').all():
         raise ValueError('Location CSV must define ordered L01..L15 and nonempty texts')
-    return dict(ids=LOCATION_IDS, texts=frame.text.tolist(), model_name='ncbi/MedCPT-Query-Encoder',
+    return dict(ids=LOCATION_IDS, texts=frame.text.tolist(), encoder_name='ncbi/MedCPT-Query-Encoder',
                 max_length=64, pooling='cls', csv_sha256=sha256_file(path))
 
 

@@ -160,15 +160,17 @@ def validate_config(data: dict[str, Any], schema: dict[str, Any] | None = None, 
         raise ValueError('Invalid model.architecture')
     if architecture == 'kb_multitask':
         import math
-        mt = data.get('multitask', {})
-        for key in ('epsilon', 'literature_weight', 'location_weight'):
+        mt = data['loss']
+        for key in ('soft_label_eps', 'lit_weight', 'loc_weight'):
             value = mt.get(key)
-            _require_positive(f'multitask.{key}', value, allow_zero=True)
-            if not math.isfinite(value) or (key == 'epsilon' and value > 1):
-                raise ValueError(f'Invalid multitask.{key}')
+            _require_positive(f'loss.{key}', value, allow_zero=True)
+            if not math.isfinite(value) or (key == 'soft_label_eps' and value > 1):
+                raise ValueError(f'Invalid loss.{key}')
         if data['loss']['class_weighting'] != 'none' or data['text']['max_length'] != 64:
             raise ValueError('kb_multitask requires unweighted CE and length64 text')
-        if not all(data['paths'].get(key) for key in ('location_csv', 'location_embedding_cache', 'location_labels_csv')):
+        data['paths'].setdefault('location_csv', str(Path(__file__).resolve().parents[3] / 'kb/location_propositions_v1.csv'))
+        data['paths'].setdefault('location_labels_csv', 'location_labels_8class.csv')
+        if not data['knowledge'].get('location_query_cache') or not all(data['paths'].get(key) for key in ('location_csv', 'location_labels_csv')):
             raise ValueError('kb_multitask requires location definition, embedding cache and labels')
     if architecture != 'legacy':
         if data['model']['backbone'] != 'densenet169' or data['model']['use_metadata']:
@@ -188,8 +190,9 @@ def validate_config(data: dict[str, Any], schema: dict[str, Any] | None = None, 
             raise ValueError('PG requires MedCPT queries')
     if schema is not None:
         schema = _deep_merge(schema, {'model': {'architecture': 'legacy', 'pg_use_text': True},
-            'multitask': {'epsilon': .1, 'literature_weight': 1., 'location_weight': 1.},
-            'paths': {'text_csv': None, 'text_token_cache': None, 'location_csv': None, 'location_embedding_cache': None, 'location_labels_csv': None},
+            'loss': {'soft_label_eps': .1, 'lit_weight': 1., 'loc_weight': 1.},
+            'knowledge': {'location_query_cache': None},
+            'paths': {'text_csv': None, 'text_token_cache': None, 'location_csv': None, 'location_labels_csv': None},
             'text': {'encoder_name': 'ncbi/MedCPT-Query-Encoder', 'max_length': 64}})
         unknown = sorted(_flatten_keys(data) - _flatten_keys(schema))
         if unknown:
@@ -320,6 +323,9 @@ def load_config(
         root = (root.parent / base_ref).resolve()
     schema = _read_with_bases(root)
 
+    if data['model'].get('architecture') == 'kb_multitask':
+        data['paths'].setdefault('location_csv', str(Path(__file__).resolve().parents[3] / 'kb/location_propositions_v1.csv'))
+        data['paths'].setdefault('location_labels_csv', 'location_labels_8class.csv')
     _apply_overrides(data, overrides)
     if data['train'].get('recipe') == 'auto':
         data['train']['recipe'] = data['recipes']['backbones'][data['model']['backbone']]

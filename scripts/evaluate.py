@@ -38,6 +38,7 @@ def main() -> None:
                        image_ids=frame.image_id.to_numpy(dtype=str), prop_ids=np.asarray(extras['kb_ids'], dtype=str))
         if 'auxiliary_metrics' in extras:
             payload['scores'] = extras['proposition_scores']
+            payload['ids'] = payload.pop('prop_ids')
         if 'class_pool_weights' in extras:
             payload['alpha'] = extras['class_pool_weights']
         np.savez(output_dir / f'proposition_scores_{args.split}.npz', **payload)

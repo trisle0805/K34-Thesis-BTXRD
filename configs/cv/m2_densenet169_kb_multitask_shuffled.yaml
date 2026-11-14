@@ -1,3 +1,0 @@
-base: m1_densenet169_kb_multitask.yaml
-knowledge:
-  embedding_permutation_seed: 0

@@ -145,7 +145,7 @@ def _build_model_inputs(cfg, checkpoint: dict[str, Any] | None = None):
         cache = torch.load(cfg.paths.text_embedding_cache, map_location='cpu', weights_only=False)
         if cache.get('max_length') != 64:
             raise ValueError('Literature query cache requires max_length=64')
-        location = load_location_embeddings(cfg.paths.location_embedding_cache, cfg.paths.location_csv)
+        location = load_location_embeddings(cfg.knowledge.location_query_cache, cfg.paths.location_csv)
         literature, _ = permute_embeddings(literature, kb.ids, cfg.knowledge.embedding_permutation_seed)
         location, _ = permute_embeddings(location, LOCATION_IDS, cfg.knowledge.embedding_permutation_seed)
         queries = torch.cat((literature, location))
@@ -153,7 +153,7 @@ def _build_model_inputs(cfg, checkpoint: dict[str, Any] | None = None):
             if checkpoint.get('kb_sha256') != kb.sha256 or not torch.equal(queries, checkpoint['model_buffers']['text_embeddings']):
                 raise ValueError('Multitask checkpoint input mismatch')
             expected = checkpoint.get('multitask_hashes', {})
-            if expected != {key: sha256_file(getattr(cfg.paths, key)) for key in ('location_csv', 'location_embedding_cache', 'location_labels_csv', 'text_csv', 'text_token_cache')}:
+            if expected != _multitask_hashes(cfg):
                 raise ValueError('Multitask checkpoint input hashes mismatch')
         return queries, kb.ids + LOCATION_IDS, kb.class_to_ids, kb.sha256
     if not (cfg.model.use_knowledge or cfg.get_path('model.use_pecl', False)):
@@ -219,7 +219,7 @@ def _run_epoch(model, loader, device, ce_loss, con_loss, cfg, optimizer=None, sc
             loss_total = supervised + cfg.loss.contrastive_weight * loss_con
             if model.architecture == 'kb_multitask':
                 from btxrd.models.kb_multitask import multitask_loss
-                loss_total, auxiliary = multitask_loss(output, labels, model.proposition_branch, batch['locations'].to(device), cfg.multitask)
+                loss_total, auxiliary = multitask_loss(output, labels, model.proposition_branch, batch['locations'].to(device), cfg.loss)
                 for key, value in auxiliary.items():
                     totals.setdefault(key, 0.)
                     totals[key] += float(value.detach()) * labels.shape[0]
@@ -367,7 +367,7 @@ def train(cfg) -> dict[str, Any]:
             'train_batches': len(data.loaders['train']),
         }
         if model.architecture == 'kb_multitask':
-            state['multitask_hashes'] = {key: sha256_file(getattr(cfg.paths, key)) for key in ('location_csv', 'location_embedding_cache', 'location_labels_csv', 'text_csv', 'text_token_cache')}
+            state['multitask_hashes'] = _multitask_hashes(cfg)
         if improved:
             save_checkpoint(run_dir / "best.pt", state)
         if cfg.train.recipe == 'densenet':
@@ -398,7 +398,7 @@ def train(cfg) -> dict[str, Any]:
     if cfg.model.use_knowledge or cfg.model.use_pecl:
         used_files.extend(["kb_json", "text_embedding_cache"])
     if model.architecture == 'kb_multitask':
-        used_files.extend(['location_csv', 'location_embedding_cache', 'location_labels_csv'])
+        used_files.extend(['location_csv', 'location_labels_csv'])
     blocks = dict(model.named_children())
     if model.architecture == 'pg':
         blocks = {'backbone': model.image_encoder, 'image_attention': model.pg.image_attention,
@@ -430,6 +430,7 @@ def train(cfg) -> dict[str, Any]:
     }
     if model.architecture == 'kb_multitask':
         import hashlib
+        info['sha256'].update(_multitask_hashes(cfg))
         info['soft_targets'] = model.proposition_branch.soft_targets.cpu().tolist()
         info['soft_targets_sha256'] = hashlib.sha256(model.proposition_branch.soft_targets.cpu().numpy().tobytes()).hexdigest()
         info['knowledge_embedding_source_ids'] = {
@@ -437,3 +438,8 @@ def train(cfg) -> dict[str, Any]:
             'location': permute_embeddings(embeddings[65:], kb_ids[65:], cfg.knowledge.embedding_permutation_seed)[1]}
     write_json(run_dir / "run_info.json", info)
     return result
+
+def _multitask_hashes(cfg):
+    return {**{key: sha256_file(getattr(cfg.paths, key)) for key in
+               ('location_csv', 'location_labels_csv', 'text_csv', 'text_token_cache')},
+            'location_query_cache': sha256_file(cfg.knowledge.location_query_cache)}

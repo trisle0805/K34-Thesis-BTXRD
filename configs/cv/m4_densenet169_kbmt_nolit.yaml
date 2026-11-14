@@ -1,0 +1,15 @@
+base: k0_densenet169_imgtxt.yaml
+model:
+  architecture: kb_multitask
+  use_knowledge: true
+knowledge:
+  text_encoder_name: ncbi/MedCPT-Query-Encoder
+  location_query_cache: location_queries.pt
+paths:
+  kb_json: kb.json
+  text_embedding_cache: text_embeddings.pt
+  location_labels_csv: location_labels_8class.csv
+loss:
+  soft_label_eps: 0.0
+  lit_weight: 0.0
+  loc_weight: 1.0

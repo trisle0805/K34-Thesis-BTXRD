@@ -39,9 +39,10 @@ class PropositionBranch(nn.Module):
 
     def forward(self, image, tokens, mask):
         validate_text(tokens, mask)
-        visual, _ = self.image_attention(self.Q, image)
-        text, _ = self.text_attention(self.Q, tokens.float(), mask)
-        return self.scorer(torch.cat((visual, text), -1)).squeeze(-1)
+        visual, attn_img = self.image_attention(self.Q, image)
+        text, attn_txt = self.text_attention(self.Q, tokens.float(), mask)
+        return dict(proposition_scores=self.scorer(torch.cat((visual, text), -1)).squeeze(-1),
+                attn_img=attn_img, attn_txt=attn_txt)
 
 
 def multitask_loss(output, labels, branch, locations, cfg):
@@ -50,7 +51,7 @@ def multitask_loss(output, labels, branch, locations, cfg):
     soft = -(branch.soft_targets[labels] * logits.log_softmax(-1)).sum(-1).mean()
     hard = F.cross_entropy(logits, labels)
     zero = logits.new_zeros(())
-    lit = F.binary_cross_entropy_with_logits(output['proposition_scores'][:, :65], branch.literature_targets[labels]) if cfg.literature_weight else zero
-    loc = F.binary_cross_entropy_with_logits(output['proposition_scores'][:, 65:], locations) if cfg.location_weight else zero
-    total = soft + cfg.literature_weight * lit + cfg.location_weight * loc
-    return total, dict(loss_soft_ce=soft, loss_hard_ce=hard, loss_literature_bce=lit, loss_location_bce=loc)
+    lit = F.binary_cross_entropy_with_logits(output['proposition_scores'][:, :65], branch.literature_targets[labels]) if cfg.lit_weight else zero
+    loc = F.binary_cross_entropy_with_logits(output['proposition_scores'][:, 65:], locations) if cfg.loc_weight else zero
+    total = soft + cfg.lit_weight * lit + cfg.loc_weight * loc
+    return total, dict(loss_ce_soft=soft, loss_ce_hard=hard, loss_bce_lit=lit, loss_bce_loc=loc)
