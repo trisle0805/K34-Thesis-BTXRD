@@ -34,11 +34,17 @@ def main() -> None:
         np.savez(output_dir / f'branch_logits_{args.split}.npz', **branch_outputs)
     frame.to_csv(output_dir / f"predictions_{args.split}.csv", index=False)
     if 'proposition_scores' in extras:
-        np.savez(output_dir / f'proposition_scores_{args.split}.npz', s=extras['proposition_scores'],
-                 alpha=extras['class_pool_weights'], image_ids=frame.image_id.to_numpy(dtype=str),
-                 prop_ids=np.asarray(extras['kb_ids'], dtype=str))
+        payload = dict(s=extras['proposition_scores'],
+                       image_ids=frame.image_id.to_numpy(dtype=str), prop_ids=np.asarray(extras['kb_ids'], dtype=str))
+        if 'auxiliary_metrics' in extras:
+            payload['scores'] = extras['proposition_scores']
+        if 'class_pool_weights' in extras:
+            payload['alpha'] = extras['class_pool_weights']
+        np.savez(output_dir / f'proposition_scores_{args.split}.npz', **payload)
     probabilities = frame[[f"p_{name}" for name in CLASS_NAMES]].to_numpy()
     metrics = compute_metrics(frame["y_true"], frame["y_pred"], probabilities)
+    if 'auxiliary_metrics' in extras:
+        metrics['auxiliary'] = extras['auxiliary_metrics']
     write_json(output_dir / f"metrics_{args.split}.json", metrics)
 
 

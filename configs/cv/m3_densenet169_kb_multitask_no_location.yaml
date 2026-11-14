@@ -1,0 +1,3 @@
+base: m1_densenet169_kb_multitask.yaml
+multitask:
+  location_weight: 0.0

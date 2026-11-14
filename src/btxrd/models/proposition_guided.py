@@ -20,12 +20,12 @@ class FixedQueryAttention(nn.Module):
         batch, length, _ = tokens.shape
         key = self.key(tokens).reshape(batch, length, 8, 96).transpose(1, 2)
         value = self.value(tokens).reshape(batch, length, 8, 96).transpose(1, 2)
-        query = queries.reshape(65, 8, 96).permute(1, 0, 2)
+        query = queries.reshape(queries.shape[0], 8, 96).permute(1, 0, 2)
         scores = torch.matmul(query, key.transpose(-1, -2)) / (96 ** 0.5)
         if mask is not None:
             scores = scores.masked_fill(~mask[:, None, None, :], float('-inf'))
         weights = scores.softmax(-1)
-        context = torch.matmul(weights, value).transpose(1, 2).reshape(batch, 65, 768)
+        context = torch.matmul(weights, value).transpose(1, 2).reshape(batch, queries.shape[0], 768)
         return self.norm(queries + self.dropout(self.output(context))), weights
 
 

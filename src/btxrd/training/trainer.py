@@ -136,6 +136,26 @@ def _prepare_run_dir(cfg) -> Path:
 
 
 def _build_model_inputs(cfg, checkpoint: dict[str, Any] | None = None):
+    if cfg.get_path('model.architecture') == 'kb_multitask':
+        from btxrd.data.locations import load_location_embeddings, LOCATION_IDS
+        kb = load_kb(cfg.paths.kb_json, cfg.knowledge.exclude_ids, CLASS_NAMES)
+        literature = load_text_embeddings(cfg.paths.text_embedding_cache, kb, cfg.knowledge.text_encoder_name)
+        if len(kb.ids) != 65:
+            raise ValueError('kb_multitask requires exactly 65 literature queries')
+        cache = torch.load(cfg.paths.text_embedding_cache, map_location='cpu', weights_only=False)
+        if cache.get('max_length') != 64:
+            raise ValueError('Literature query cache requires max_length=64')
+        location = load_location_embeddings(cfg.paths.location_embedding_cache, cfg.paths.location_csv)
+        literature, _ = permute_embeddings(literature, kb.ids, cfg.knowledge.embedding_permutation_seed)
+        location, _ = permute_embeddings(location, LOCATION_IDS, cfg.knowledge.embedding_permutation_seed)
+        queries = torch.cat((literature, location))
+        if checkpoint is not None:
+            if checkpoint.get('kb_sha256') != kb.sha256 or not torch.equal(queries, checkpoint['model_buffers']['text_embeddings']):
+                raise ValueError('Multitask checkpoint input mismatch')
+            expected = checkpoint.get('multitask_hashes', {})
+            if expected != {key: sha256_file(getattr(cfg.paths, key)) for key in ('location_csv', 'location_embedding_cache', 'location_labels_csv', 'text_csv', 'text_token_cache')}:
+                raise ValueError('Multitask checkpoint input hashes mismatch')
+        return queries, kb.ids + LOCATION_IDS, kb.class_to_ids, kb.sha256
     if not (cfg.model.use_knowledge or cfg.get_path('model.use_pecl', False)):
         return None, None, None, None
     if checkpoint is not None and "text_embeddings" in checkpoint.get("model_buffers", {}):
@@ -197,6 +217,12 @@ def _run_epoch(model, loader, device, ce_loss, con_loss, cfg, optimizer=None, sc
             else:
                 loss_con = loss_ce.new_zeros(())
             loss_total = supervised + cfg.loss.contrastive_weight * loss_con
+            if model.architecture == 'kb_multitask':
+                from btxrd.models.kb_multitask import multitask_loss
+                loss_total, auxiliary = multitask_loss(output, labels, model.proposition_branch, batch['locations'].to(device), cfg.multitask)
+                for key, value in auxiliary.items():
+                    totals.setdefault(key, 0.)
+                    totals[key] += float(value.detach()) * labels.shape[0]
             if cfg.get_path('model.use_pecl', False):
                 loss_pecl = torch.nn.functional.cross_entropy(
                     output['pecl_u'] @ model.pecl_prototypes.T / cfg.loss.pecl_temperature, labels)
@@ -340,6 +366,8 @@ def train(cfg) -> dict[str, Any]:
             "vit_config": model.image_encoder.vit.config.to_dict() if cfg.model.backbone == 'skelex' else None,
             'train_batches': len(data.loaders['train']),
         }
+        if model.architecture == 'kb_multitask':
+            state['multitask_hashes'] = {key: sha256_file(getattr(cfg.paths, key)) for key in ('location_csv', 'location_embedding_cache', 'location_labels_csv', 'text_csv', 'text_token_cache')}
         if improved:
             save_checkpoint(run_dir / "best.pt", state)
         if cfg.train.recipe == 'densenet':
@@ -360,7 +388,7 @@ def train(cfg) -> dict[str, Any]:
         "stopped_early": stopped_early,
     }
     used_files = ["splits_csv"]
-    if cfg.get_path('model.architecture', 'legacy') == 'image_text_concat' or (
+    if cfg.get_path('model.architecture', 'legacy') in {'image_text_concat', 'kb_multitask'} or (
         cfg.get_path('model.architecture', 'legacy') == 'pg' and cfg.get_path('model.pg_use_text', True)):
         used_files.extend(['text_csv', 'text_token_cache'])
     if cfg.loss.class_weighting == "csv":
@@ -369,6 +397,8 @@ def train(cfg) -> dict[str, Any]:
         used_files.append("metadata_csv")
     if cfg.model.use_knowledge or cfg.model.use_pecl:
         used_files.extend(["kb_json", "text_embedding_cache"])
+    if model.architecture == 'kb_multitask':
+        used_files.extend(['location_csv', 'location_embedding_cache', 'location_labels_csv'])
     blocks = dict(model.named_children())
     if model.architecture == 'pg':
         blocks = {'backbone': model.image_encoder, 'image_attention': model.pg.image_attention,
@@ -381,7 +411,7 @@ def train(cfg) -> dict[str, Any]:
         block_counts['bias'] = {'total': model.pg.class_bias.numel(), 'trainable': model.pg.class_bias.numel()}
     info = {
         'architecture': model.architecture,
-        'use_text_branch': model.architecture == 'image_text_concat' or (model.architecture == 'pg' and model.pg.text_attention is not None),
+        'use_text_branch': model.architecture in {'image_text_concat', 'kb_multitask'} or (model.architecture == 'pg' and model.pg.text_attention is not None),
         'pool': cfg.model.aggregation if model.architecture == 'pg' else 'masked_mean',
         'knowledge_permuted': bool((cfg.model.use_knowledge or cfg.model.use_pecl) and cfg.knowledge.embedding_permutation_seed is not None),
         'knowledge_embedding_source_ids': (permute_embeddings(
@@ -398,5 +428,12 @@ def train(cfg) -> dict[str, Any]:
         },
         "sha256": {name: sha256_file(getattr(cfg.paths, name)) for name in used_files},
     }
+    if model.architecture == 'kb_multitask':
+        import hashlib
+        info['soft_targets'] = model.proposition_branch.soft_targets.cpu().tolist()
+        info['soft_targets_sha256'] = hashlib.sha256(model.proposition_branch.soft_targets.cpu().numpy().tobytes()).hexdigest()
+        info['knowledge_embedding_source_ids'] = {
+            'literature': permute_embeddings(embeddings[:65], kb_ids[:65], cfg.knowledge.embedding_permutation_seed)[1],
+            'location': permute_embeddings(embeddings[65:], kb_ids[65:], cfg.knowledge.embedding_permutation_seed)[1]}
     write_json(run_dir / "run_info.json", info)
     return result

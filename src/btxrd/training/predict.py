@@ -100,7 +100,10 @@ def predict(cfg, checkpoint_path: str | Path, split: str = "test", return_extras
         saved = resolved.to_dict()
         saved['model']['skelex']['vit_config'] = checkpoint['vit_config']
         resolved = Config(saved, resolved.source_path)
-    if resolved.model.use_knowledge or resolved.model.use_pecl:
+    if resolved.get_path('model.architecture') == 'kb_multitask':
+        from btxrd.training.trainer import _build_model_inputs
+        embeddings, _, _, _ = _build_model_inputs(resolved, checkpoint)
+    elif resolved.model.use_knowledge or resolved.model.use_pecl:
         _verify_optional_knowledge(resolved, checkpoint)
         embeddings = checkpoint.get("model_buffers", {}).get("text_embeddings")
         if embeddings is None:
@@ -166,6 +169,14 @@ def predict(cfg, checkpoint_path: str | Path, split: str = "test", return_extras
         "kb_ids": checkpoint.get("kb_ids") if resolved.model.use_knowledge else None,
     }
     extras.update({key: np.concatenate(values) for key, values in decoder_extras.items() if values})
+    if model.architecture == 'kb_multitask':
+        from btxrd.training.proposition_metrics import auxiliary_auroc
+        targets = model.proposition_branch.literature_targets.cpu().numpy()[y_true]
+        locations = np.stack([data.loaders[split].dataset.locations[item].numpy() for item in image_ids])
+        tumor = np.asarray([CLASS_NAMES[i].lower() != 'normal' for i in y_true])
+        scores = extras['proposition_scores']
+        extras['auxiliary_metrics'] = {'literature': auxiliary_auroc(targets, scores[:, :65]),
+                                      'location': auxiliary_auroc(locations[tumor], scores[tumor, 65:])}
     if hasattr(model, 'knowledge_logit_scale'):
         extras['beta'] = model.knowledge_logit_scale.detach().cpu().numpy()
     return frame, extras

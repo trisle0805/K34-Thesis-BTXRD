@@ -1,0 +1,4 @@
+base: m1_densenet169_kb_multitask.yaml
+multitask:
+  epsilon: 0.0
+  literature_weight: 0.0

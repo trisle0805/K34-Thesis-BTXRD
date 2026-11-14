@@ -1,0 +1,16 @@
+id,name,text
+L01,hand,The lesion is located in the bones of the hand.
+L02,ulna,The lesion is located in the ulna.
+L03,radius,The lesion is located in the radius.
+L04,humerus,The lesion is located in the humerus.
+L05,foot,The lesion is located in the bones of the foot.
+L06,tibia,The lesion is located in the tibia.
+L07,fibula,The lesion is located in the fibula.
+L08,femur,The lesion is located in the femur.
+L09,hip bone,The lesion is located in the pelvic bone.
+L10,ankle-joint,The lesion is centered at the ankle joint.
+L11,knee-joint,The lesion is centered at the knee joint.
+L12,hip-joint,The lesion is centered at the hip joint.
+L13,wrist-joint,The lesion is centered at the wrist joint.
+L14,elbow-joint,The lesion is centered at the elbow joint.
+L15,shoulder-joint,The lesion is centered at the shoulder joint.
