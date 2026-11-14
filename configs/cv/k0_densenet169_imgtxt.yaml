@@ -3,8 +3,8 @@ model:
   architecture: image_text_concat
   backbone: densenet169
 paths:
-  patient_text_csv: patient_text.csv
-  patient_token_cache: patient_tokens.pt
-patient_text:
+  text_csv: text.csv
+  text_token_cache: text_tokens.pt
+text:
   encoder_name: ncbi/MedCPT-Query-Encoder
   max_length: 64

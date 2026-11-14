@@ -362,14 +362,27 @@ def train(cfg) -> dict[str, Any]:
     used_files = ["splits_csv"]
     if cfg.get_path('model.architecture', 'legacy') == 'image_text_concat' or (
         cfg.get_path('model.architecture', 'legacy') == 'pg' and cfg.get_path('model.pg_use_text', True)):
-        used_files.extend(['patient_text_csv', 'patient_token_cache'])
+        used_files.extend(['text_csv', 'text_token_cache'])
     if cfg.loss.class_weighting == "csv":
         used_files.append("class_weights_csv")
     if cfg.model.use_metadata:
         used_files.append("metadata_csv")
     if cfg.model.use_knowledge or cfg.model.use_pecl:
         used_files.extend(["kb_json", "text_embedding_cache"])
+    blocks = dict(model.named_children())
+    if model.architecture == 'pg':
+        blocks = {'backbone': model.image_encoder, 'image_attention': model.pg.image_attention,
+                  'text_attention': model.pg.text_attention, 'scorer': model.pg.scorer,
+                  'pooling': model.pg.pool}
+    block_counts = {name: {'total': sum(p.numel() for p in block.parameters()) if block is not None else 0,
+                         'trainable': sum(p.numel() for p in block.parameters() if p.requires_grad) if block is not None else 0}
+                    for name, block in blocks.items()}
+    if model.architecture == 'pg':
+        block_counts['bias'] = {'total': model.pg.class_bias.numel(), 'trainable': model.pg.class_bias.numel()}
     info = {
+        'architecture': model.architecture,
+        'use_text_branch': model.architecture == 'image_text_concat' or (model.architecture == 'pg' and model.pg.text_attention is not None),
+        'pool': cfg.model.aggregation if model.architecture == 'pg' else 'masked_mean',
         'knowledge_permuted': bool((cfg.model.use_knowledge or cfg.model.use_pecl) and cfg.knowledge.embedding_permutation_seed is not None),
         'knowledge_embedding_source_ids': (permute_embeddings(
             embeddings, kb_ids, cfg.knowledge.embedding_permutation_seed)[1] if kb_ids else {}),
@@ -379,9 +392,7 @@ def train(cfg) -> dict[str, Any]:
         "git_commit": git_commit(Path(__file__).resolve()),
         "environment": environment_info(),
         "parameters": {
-             'blocks': {name: {'total': sum(p.numel() for p in block.parameters()),
-                      'trainable': sum(p.numel() for p in block.parameters() if p.requires_grad)}
-                  for name, block in model.named_children()},
+             'blocks': block_counts,
             "total": sum(parameter.numel() for parameter in model.parameters()),
             "trainable": sum(parameter.numel() for parameter in model.parameters() if parameter.requires_grad),
         },

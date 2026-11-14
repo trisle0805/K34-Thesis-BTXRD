@@ -143,8 +143,8 @@ def build_dataloaders(cfg, splits: tuple[str, ...] = ("train", "val"), metadata_
     if cfg.get_path('model.architecture', 'legacy') == 'image_text_concat' or (
         cfg.get_path('model.architecture', 'legacy') == 'pg' and cfg.get_path('model.pg_use_text', True)):
         from btxrd.data.patient_text import load_patient_cache
-        patient_cache = load_patient_cache(cfg.paths.patient_token_cache, cfg.paths.patient_text_csv,
-            cfg.patient_text.encoder_name, cfg.patient_text.max_length,
+        patient_cache = load_patient_cache(cfg.paths.text_token_cache, cfg.paths.text_csv,
+            cfg.text.encoder_name, cfg.text.max_length,
             frame.loc[frame[cfg.data.columns.split].isin(splits), cfg.data.columns.image_id].astype(str))
     class_weights = load_class_weights(cfg) if cfg.loss.class_weighting == "csv" else None
     columns = cfg.data.columns.to_dict()

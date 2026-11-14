@@ -1,0 +1,7 @@
+base: k0_densenet169_imgtxt.yaml
+model:
+  architecture: pg
+  use_knowledge: true
+  pg_use_text: true
+knowledge:
+  text_encoder_name: ncbi/MedCPT-Query-Encoder

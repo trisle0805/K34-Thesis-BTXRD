@@ -82,7 +82,7 @@ def test_two_epoch_cpu_smoke():
         assert torch.isfinite(loss)
 
 
-@pytest.mark.parametrize('name', ['k0_image_text_concat', 'k1_pg_image', 'k2_pg_image_text'])
+@pytest.mark.parametrize('name', ['k0_densenet169_imgtxt', 'k1_densenet169_pg', 'k2_densenet169_pg_shuffled'])
 def test_train_resume_predict(config_overrides, synthetic_assets, tmp_path, monkeypatch, name):
     import json
     import pandas as pd
@@ -100,9 +100,8 @@ def test_train_resume_predict(config_overrides, synthetic_assets, tmp_path, monk
                     mask=torch.ones(len(ids), 4).bool(), encoder_name='ncbi/MedCPT-Query-Encoder',
                     max_length=4, text_csv_sha256=sha256_file(csv)), cache)
     changes = {'train.epochs': 1, 'train.amp': False}
-    if name != 'k1_pg_image':
-        changes.update({'paths.patient_text_csv': str(csv), 'paths.patient_token_cache': str(cache),
-                        'patient_text.max_length': 4})
+    changes.update({'paths.text_csv': str(csv), 'paths.text_token_cache': str(cache),
+                    'text.max_length': 4})
     path = f'configs/cv/{name}.yaml'
     def config(**extra):
         return load_config(path, config_overrides(output_dir=tmp_path, run_name=name, **(changes | extra)))
@@ -112,9 +111,14 @@ def test_train_resume_predict(config_overrides, synthetic_assets, tmp_path, monk
     assert len(pd.read_csv(run / 'history.csv')) == 2
     info = json.loads((run / 'run_info.json').read_text())
     assert info['parameters']['blocks']
+    assert info['use_text_branch'] is True
+    assert {'text_csv', 'text_token_cache'} <= info['sha256'].keys()
+    if name != 'k0_densenet169_imgtxt':
+        assert set(info['parameters']['blocks']) == {'backbone', 'image_attention', 'text_attention', 'scorer', 'pooling', 'bias'}
+        assert sum(b['total'] for b in info['parameters']['blocks'].values()) == info['parameters']['total']
     frame, extras = predict(config(), run / 'last.pt', return_extras=True)
     assert len(frame) == 8
-    if name != 'k0_image_text_concat':
+    if True:
         import sys
         import numpy as np
         from scripts.evaluate import main
@@ -122,7 +126,9 @@ def test_train_resume_predict(config_overrides, synthetic_assets, tmp_path, monk
         monkeypatch.setattr(sys, 'argv', ['evaluate', '--config', path, '--checkpoint', str(run / 'last.pt'),
             '--out', str(run / 'eval'), '--set', *[f'{k}={json.dumps(v)}' for k, v in overrides.items()]])
         main()
-        with np.load(run / 'eval' / 'propositions_test.npz') as artifact:
+        if name == 'k0_densenet169_imgtxt':
+            return
+        with np.load(run / 'eval' / 'proposition_scores_test.npz') as artifact:
             assert set(artifact.files) == {'s', 'alpha', 'image_ids', 'prop_ids'}
             assert np.array_equal(artifact['s'], extras['proposition_scores'])
         assert extras['proposition_scores'].shape == (8, 65)
@@ -132,3 +138,17 @@ def test_train_resume_predict(config_overrides, synthetic_assets, tmp_path, monk
         torch.save(saved, run / 'corrupt.pt')
         with pytest.raises(ValueError, match='PG A'):
             predict(config(), run / 'corrupt.pt')
+
+def test_exact_pg_configs_and_counts(config_overrides):
+    from btxrd.config import load_config
+    from btxrd.models.model import BTXRDModel
+    configs = [load_config(f'configs/cv/{name}.yaml', config_overrides()) for name in
+               ('k1_densenet169_pg', 'k2_densenet169_pg_shuffled')]
+    left, right = [cfg.to_dict() for cfg in configs]
+    left['run']['name'] = right['run']['name']
+    left['knowledge']['embedding_permutation_seed'] = 0
+    assert left == right
+    ids = [f'P{i}' for i in range(65)]
+    mapping = {name: ids[c::8] for c, name in enumerate(CLASS_NAMES)}
+    counts = [sum(p.numel() for p in BTXRDModel(cfg, torch.randn(65, 768), mapping, ids, pretrained=False).parameters()) for cfg in configs]
+    assert counts[0] == counts[1]

@@ -1,0 +1,3 @@
+base: k1_densenet169_pg.yaml
+knowledge:
+  embedding_permutation_seed: 0
