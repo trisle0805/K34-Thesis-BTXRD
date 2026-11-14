@@ -1,0 +1,12 @@
+base: _protocol.yaml
+model:
+  architecture: pg
+  backbone: densenet169
+  use_knowledge: true
+  pg_use_text: true
+paths:
+  patient_text_csv: patient_text.csv
+  patient_token_cache: patient_tokens.pt
+patient_text:
+  encoder_name: ncbi/MedCPT-Query-Encoder
+  max_length: 64

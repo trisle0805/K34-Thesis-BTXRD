@@ -140,10 +140,20 @@ def _build_model_inputs(cfg, checkpoint: dict[str, Any] | None = None):
         return None, None, None, None
     if checkpoint is not None and "text_embeddings" in checkpoint.get("model_buffers", {}):
         embeddings = checkpoint["model_buffers"]["text_embeddings"]
+        if cfg.get_path('model.architecture', 'legacy') == 'pg':
+            from btxrd.training.predict import _verify_optional_knowledge
+            _verify_optional_knowledge(cfg, checkpoint)
+            buffers = checkpoint['model_buffers']
+            if 'Q' not in buffers or not torch.equal(embeddings, buffers['Q']):
+                raise ValueError('PG checkpoint query buffers disagree')
+            for name in ('Q', 'A'):
+                if name not in buffers or not torch.equal(buffers[name], checkpoint['model_state'].get(f'pg.{name}', torch.empty(0))):
+                    raise ValueError(f'PG checkpoint {name} buffers disagree')
         kb_ids = checkpoint.get("kb_ids")
         class_to_ids = checkpoint.get("class_to_ids")
         needs_mapping = (cfg.model.use_contrastive or cfg.get_path('model.use_pecl', False)
-                         or cfg.get_path('model.knowledge_decoder', 'global') == 'class_conditioned')
+                         or cfg.get_path('model.knowledge_decoder', 'global') == 'class_conditioned'
+                         or cfg.get_path('model.architecture', 'legacy') == 'pg')
         if kb_ids is None or (needs_mapping and class_to_ids is None):
             raise ValueError("Knowledge checkpoint is missing kb_ids/class_to_ids")
         return embeddings, kb_ids, class_to_ids, checkpoint.get("kb_sha256")
@@ -178,7 +188,8 @@ def _run_epoch(model, loader, device, ce_loss, con_loss, cfg, optimizer=None, sc
         context = torch.amp.autocast("cuda", enabled=True) if amp_enabled else nullcontext()
         grad_context = torch.enable_grad() if training else torch.no_grad()
         with grad_context, context:
-            output = model(image, metadata)
+            text_kwargs = {key: batch[key].to(device) for key in ('text_tokens', 'text_mask') if key in batch}
+            output = model(image, metadata, **text_kwargs)
             supervised, loss_ce, branch_ce = branch_classification_loss(
                 output, labels, ce_loss, cfg.loss.aux_image_weight, cfg.loss.aux_knowledge_weight)
             if cfg.model.use_contrastive:
@@ -349,6 +360,9 @@ def train(cfg) -> dict[str, Any]:
         "stopped_early": stopped_early,
     }
     used_files = ["splits_csv"]
+    if cfg.get_path('model.architecture', 'legacy') == 'image_text_concat' or (
+        cfg.get_path('model.architecture', 'legacy') == 'pg' and cfg.get_path('model.pg_use_text', True)):
+        used_files.extend(['patient_text_csv', 'patient_token_cache'])
     if cfg.loss.class_weighting == "csv":
         used_files.append("class_weights_csv")
     if cfg.model.use_metadata:
@@ -365,6 +379,9 @@ def train(cfg) -> dict[str, Any]:
         "git_commit": git_commit(Path(__file__).resolve()),
         "environment": environment_info(),
         "parameters": {
+             'blocks': {name: {'total': sum(p.numel() for p in block.parameters()),
+                      'trainable': sum(p.numel() for p in block.parameters() if p.requires_grad)}
+                  for name, block in model.named_children()},
             "total": sum(parameter.numel() for parameter in model.parameters()),
             "trainable": sum(parameter.numel() for parameter in model.parameters() if parameter.requires_grad),
         },

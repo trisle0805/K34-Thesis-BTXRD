@@ -26,6 +26,19 @@ class BTXRDModel(nn.Module):
             pretrained = bool(cfg.model.pretrained)
         self.image_encoder = build_image_encoder(cfg, pretrained, densenet_class=DenseNet169Encoder)
         feature_dim = getattr(self.image_encoder, 'global_dim', IMAGE_FEATURE_DIM)
+        self.architecture = cfg.get_path('model.architecture', 'legacy')
+        if self.architecture != 'legacy':
+            from btxrd.models.proposition_guided import PropositionGuided, ImageTextConcat
+            if feature_dim != 1664:
+                raise ValueError('PG and image_text_concat require DenseNet169 features')
+            if self.architecture == 'pg':
+                self.pg = PropositionGuided(text_embeddings, class_to_ids, kb_ids,
+                    use_text=cfg.get_path('model.pg_use_text', True), pooling=cfg.model.aggregation)
+            elif self.architecture == 'image_text_concat':
+                self.concat = ImageTextConcat()
+            else:
+                raise ValueError('Unknown architecture')
+            return
         self.class_conditioned = cfg.get_path('model.knowledge_decoder', 'global') == 'class_conditioned'
 
         self.metadata_mlp: MetadataMLP | None = None
@@ -76,7 +89,7 @@ class BTXRDModel(nn.Module):
             self.register_buffer("prototypes", prototypes)
             self.phi = nn.Linear(cfg.knowledge.dim, cfg.knowledge.text_dim)
 
-    def forward(self, image: torch.Tensor, meta: torch.Tensor | None = None) -> dict[str, torch.Tensor | None]:
+    def forward(self, image: torch.Tensor, meta: torch.Tensor | None = None, text_tokens=None, text_mask=None) -> dict[str, torch.Tensor | None]:
         encoded = self.image_encoder(image)
         if isinstance(encoded, EncoderOutput):
             feature_map, z_img = encoded.visual_tokens, encoded.global_feature
@@ -84,6 +97,12 @@ class BTXRDModel(nn.Module):
         else:
             feature_map, z_img = encoded
             spatial_shape = None
+        if self.architecture == 'pg':
+            if feature_map.ndim == 4:
+                feature_map = feature_map.flatten(2).transpose(1, 2)
+            return self.pg(feature_map, text_tokens, text_mask)
+        if self.architecture == 'image_text_concat':
+            return self.concat(z_img, text_tokens, text_mask)
         fusion_features = [z_img]
         result: dict[str, torch.Tensor | None] = {"z_img": z_img}
         if hasattr(self, 'pecl_phi'):
@@ -121,9 +140,21 @@ class BTXRDModel(nn.Module):
         return result
 
     def checkpoint_buffers(self) -> dict[str, Any]:
+        if self.architecture == 'pg':
+            return {'text_embeddings': self.pg.Q.detach().cpu(), 'Q': self.pg.Q.detach().cpu(), 'A': self.pg.A.detach().cpu()}
+        if self.architecture == 'image_text_concat':
+            return {}
         if self.cross_attention is None:
             return {'text_embeddings': self.pecl_text_embeddings.detach().cpu()} if hasattr(self, 'pecl_text_embeddings') else {}
         buffers: dict[str, Any] = {"text_embeddings": self.cross_attention.text_emb.detach().cpu()}
         if hasattr(self, "prototypes"):
             buffers["prototypes"] = self.prototypes.detach().cpu()
         return buffers
+
+    def load_state_dict(self, state_dict, strict=True, assign=False):
+        if self.architecture == 'pg':
+            for name in ('Q', 'A'):
+                key = f'pg.{name}'
+                if key not in state_dict or not torch.equal(state_dict[key].cpu(), getattr(self.pg, name).cpu()):
+                    raise ValueError(f'Checkpoint PG {name} mismatch')
+        return super().load_state_dict(state_dict, strict=strict, assign=assign)

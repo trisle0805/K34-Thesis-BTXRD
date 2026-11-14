@@ -34,6 +34,7 @@ class BTXRDDataset(Dataset):
         self.image_ext = image_ext
         self.transform = transform
         self.metadata = metadata
+        self.patient_cache = None
         self.class_to_index = {name: index for index, name in enumerate(CLASS_NAMES)}
 
     def __len__(self) -> int:
@@ -54,6 +55,8 @@ class BTXRDDataset(Dataset):
         }
         if self.metadata is not None:
             sample["meta"] = torch.from_numpy(self.metadata[index])
+        if self.patient_cache is not None:
+            sample['text_tokens'], sample['text_mask'] = self.patient_cache[image_id]
         return sample
 
 
@@ -136,6 +139,13 @@ def build_dataloaders(cfg, splits: tuple[str, ...] = ("train", "val"), metadata_
     if not splits or any(split not in VALID_SPLITS for split in splits):
         raise ValueError(f"Invalid requested splits: {splits}")
     frame = load_splits_frame(cfg)
+    patient_cache = None
+    if cfg.get_path('model.architecture', 'legacy') == 'image_text_concat' or (
+        cfg.get_path('model.architecture', 'legacy') == 'pg' and cfg.get_path('model.pg_use_text', True)):
+        from btxrd.data.patient_text import load_patient_cache
+        patient_cache = load_patient_cache(cfg.paths.patient_token_cache, cfg.paths.patient_text_csv,
+            cfg.patient_text.encoder_name, cfg.patient_text.max_length,
+            frame.loc[frame[cfg.data.columns.split].isin(splits), cfg.data.columns.image_id].astype(str))
     class_weights = load_class_weights(cfg) if cfg.loss.class_weighting == "csv" else None
     columns = cfg.data.columns.to_dict()
     split_col = columns["split"]
@@ -191,6 +201,7 @@ def build_dataloaders(cfg, splits: tuple[str, ...] = ("train", "val"), metadata_
             train_transform if split == "train" else eval_transform,
             encoded[split],
         )
+        dataset.patient_cache = patient_cache
         sampler = None
         if split == 'train' and cfg.data.sampler == 'sqrt_inverse':
             sample_weights = subset[columns['label']].map(dict(zip(CLASS_NAMES, inverse))).tolist()

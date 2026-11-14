@@ -88,6 +88,14 @@ def _verify_optional_knowledge(cfg, checkpoint: dict[str, Any]) -> None:
 def predict(cfg, checkpoint_path: str | Path, split: str = "test", return_extras: bool = False):
     checkpoint = load_checkpoint(checkpoint_path, "cpu")
     resolved = _prediction_config(cfg, checkpoint["config"])
+    if resolved.get_path('model.architecture', 'legacy') == 'pg':
+        buffers = checkpoint.get('model_buffers', {})
+        state = checkpoint['model_state']
+        for name in ('Q', 'A'):
+            if name not in buffers or f'pg.{name}' not in state or not torch.equal(buffers[name], state[f'pg.{name}']):
+                raise ValueError(f'Checkpoint PG {name} buffers disagree')
+        if not torch.equal(buffers['Q'], buffers['text_embeddings']):
+            raise ValueError('Checkpoint PG query embeddings disagree')
     if resolved.model.backbone == 'skelex':
         saved = resolved.to_dict()
         saved['model']['skelex']['vit_config'] = checkpoint['vit_config']
@@ -117,14 +125,15 @@ def predict(cfg, checkpoint_path: str | Path, split: str = "test", return_extras
     probabilities: list[np.ndarray] = []
     cross_attn: list[np.ndarray] = []
     aggregation: list[np.ndarray] = []
-    decoder_extras = {key: [] for key in ('class_attn_weights', 'logits_img', 'logits_kb')}
+    decoder_extras = {key: [] for key in ('class_attn_weights', 'logits_img', 'logits_kb', 'proposition_scores', 'class_pool_weights')}
     with torch.no_grad():
         for batch in data.loaders[split]:
             image = batch["image"].to(device, non_blocking=True)
             metadata = batch.get("meta")
             if metadata is not None:
                 metadata = metadata.to(device, non_blocking=True)
-            output = model(image, metadata)
+            text_kwargs = {key: batch[key].to(device) for key in ('text_tokens', 'text_mask') if key in batch}
+            output = model(image, metadata, **text_kwargs)
             for key, values in decoder_extras.items():
                 if key in output:
                     values.append(output[key].cpu().numpy())

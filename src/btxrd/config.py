@@ -155,7 +155,29 @@ def _require_positive(name: str, value: Any, allow_zero: bool = False) -> None:
 
 def validate_config(data: dict[str, Any], schema: dict[str, Any] | None = None, *, require_training_assets: bool = True) -> None:
     """Validate schema and all locked experiment invariants."""
+    architecture = data['model'].get('architecture', 'legacy')
+    if architecture not in {'legacy', 'pg', 'image_text_concat'}:
+        raise ValueError('Invalid model.architecture')
+    if architecture != 'legacy':
+        if data['model']['backbone'] != 'densenet169' or data['model']['use_metadata']:
+            raise ValueError('New architectures require DenseNet169 without metadata')
+        if any(data['loss'][key] != 0 for key in ('contrastive_weight', 'pecl_weight', 'aux_image_weight', 'aux_knowledge_weight')):
+            raise ValueError('New architectures use CE only')
+        if data['model']['use_knowledge'] != (architecture == 'pg'):
+            raise ValueError('PG alone requires use_knowledge')
+        if data['model']['use_contrastive'] or data['model']['use_pecl'] or data['model']['knowledge_decoder'] != 'global':
+            raise ValueError('New architectures require global decoder and CE only')
+        if architecture == 'image_text_concat' or data['model'].get('pg_use_text', True):
+            if not all(data['paths'].get(k) for k in ('patient_text_csv', 'patient_token_cache')):
+                raise ValueError('Patient CSV and token cache are required')
+            if data.get('patient_text', {}).get('encoder_name') != 'ncbi/MedCPT-Query-Encoder' or data['patient_text']['max_length'] < 1:
+                raise ValueError('Invalid patient encoder or max_length')
+        if architecture == 'pg' and data['knowledge']['text_encoder_name'] != 'ncbi/MedCPT-Query-Encoder':
+            raise ValueError('PG requires MedCPT queries')
     if schema is not None:
+        schema = _deep_merge(schema, {'model': {'architecture': 'legacy', 'pg_use_text': True},
+            'paths': {'patient_text_csv': None, 'patient_token_cache': None},
+            'patient_text': {'encoder_name': 'ncbi/MedCPT-Query-Encoder', 'max_length': 64}})
         unknown = sorted(_flatten_keys(data) - _flatten_keys(schema))
         if unknown:
             raise KeyError(f"Unknown config key(s): {', '.join(unknown)}")

@@ -1,0 +1,6 @@
+base: _protocol.yaml
+model:
+  architecture: pg
+  backbone: densenet169
+  use_knowledge: true
+  pg_use_text: false
