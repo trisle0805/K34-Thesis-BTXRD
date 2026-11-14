@@ -38,7 +38,7 @@ class BTXRDModel(nn.Module):
                 self.concat = ImageTextConcat()
                 if self.architecture == 'kb_multitask':
                     from btxrd.models.kb_multitask import PropositionBranch
-                    self.proposition_branch = PropositionBranch(text_embeddings, class_to_ids, kb_ids, cfg.loss.soft_label_eps)
+                    self.proposition_branch = PropositionBranch(text_embeddings, class_to_ids, kb_ids)
             else:
                 raise ValueError('Unknown architecture')
             return
@@ -150,7 +150,8 @@ class BTXRDModel(nn.Module):
 
     def checkpoint_buffers(self) -> dict[str, Any]:
         if self.architecture == 'kb_multitask':
-            return {'text_embeddings': self.proposition_branch.Q.detach().cpu()}
+                return {name: value.detach().cpu().clone() for name, value in
+                    [('text_embeddings', self.proposition_branch.Q), ('membership', self.proposition_branch.membership), ('location_mask', self.proposition_branch.location_mask)]}
         if self.architecture == 'pg':
             return {'text_embeddings': self.pg.Q.detach().cpu(), 'Q': self.pg.Q.detach().cpu(), 'A': self.pg.A.detach().cpu()}
         if self.architecture == 'image_text_concat':
@@ -164,7 +165,7 @@ class BTXRDModel(nn.Module):
 
     def load_state_dict(self, state_dict, strict=True, assign=False):
         if self.architecture == 'kb_multitask':
-            for name in ('Q', 'soft_targets', 'literature_targets'):
+            for name in ('Q', 'membership', 'location_mask'):
                 key = f'proposition_branch.{name}'
                 if key not in state_dict or not torch.equal(state_dict[key].cpu(), getattr(self.proposition_branch, name).cpu()):
                     raise ValueError(f'Checkpoint multitask {name} mismatch')

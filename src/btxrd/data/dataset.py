@@ -153,7 +153,7 @@ def build_dataloaders(cfg, splits: tuple[str, ...] = ("train", "val"), metadata_
     locations = None
     if cfg.get_path('model.architecture') == 'kb_multitask':
         from btxrd.data.locations import load_locations
-        locations = load_locations(cfg.paths.location_labels_csv, frame, cfg.data.columns.image_id, cfg.data.columns.label)
+        locations = load_locations(cfg.paths.location_labels_csv, frame.loc[frame[cfg.data.columns.split].isin(splits)], cfg.data.columns.image_id, cfg.data.columns.label)
     columns = cfg.data.columns.to_dict()
     split_col = columns["split"]
     if cfg.model.use_metadata:

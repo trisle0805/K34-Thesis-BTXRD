@@ -161,10 +161,10 @@ def validate_config(data: dict[str, Any], schema: dict[str, Any] | None = None, 
     if architecture == 'kb_multitask':
         import math
         mt = data['loss']
-        for key in ('soft_label_eps', 'lit_weight', 'loc_weight'):
+        for key in ('lit_weight', 'loc_weight'):
             value = mt.get(key)
             _require_positive(f'loss.{key}', value, allow_zero=True)
-            if not math.isfinite(value) or (key == 'soft_label_eps' and value > 1):
+            if not math.isfinite(value):
                 raise ValueError(f'Invalid loss.{key}')
         if data['loss']['class_weighting'] != 'none' or data['text']['max_length'] != 64:
             raise ValueError('kb_multitask requires unweighted CE and length64 text')
@@ -190,7 +190,7 @@ def validate_config(data: dict[str, Any], schema: dict[str, Any] | None = None, 
             raise ValueError('PG requires MedCPT queries')
     if schema is not None:
         schema = _deep_merge(schema, {'model': {'architecture': 'legacy', 'pg_use_text': True},
-            'loss': {'soft_label_eps': .1, 'lit_weight': 1., 'loc_weight': 1.},
+            'loss': {'lit_weight': 1., 'loc_weight': 1.},
             'knowledge': {'location_query_cache': None},
             'paths': {'text_csv': None, 'text_token_cache': None, 'location_csv': None, 'location_labels_csv': None},
             'text': {'encoder_name': 'ncbi/MedCPT-Query-Encoder', 'max_length': 64}})

@@ -11,6 +11,9 @@ LOCATION_IDS = [f'L{i:02d}' for i in range(1, 16)]
 
 def load_locations(path, frame, image_column, label_column):
     table = pd.read_csv(path, dtype={image_column: str})
+    if image_column not in table:
+        raise ValueError('Location image IDs are required')
+    table = table[table[image_column].isin(frame[image_column].astype(str))]
     if image_column not in table or table[image_column].isna().any() or table[image_column].duplicated().any():
         raise ValueError('Location image IDs must be non-null and unique')
     if not set(LOCATION_IDS).issubset(table.columns):

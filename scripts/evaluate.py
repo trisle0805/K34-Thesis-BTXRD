@@ -41,6 +41,8 @@ def main() -> None:
             payload['ids'] = payload.pop('prop_ids')
         if 'class_pool_weights' in extras:
             payload['alpha'] = extras['class_pool_weights']
+        if 'kb_class_scores' in extras:
+            payload['kb_class_scores'] = extras['kb_class_scores']
         np.savez(output_dir / f'proposition_scores_{args.split}.npz', **payload)
     probabilities = frame[[f"p_{name}" for name in CLASS_NAMES]].to_numpy()
     metrics = compute_metrics(frame["y_true"], frame["y_pred"], probabilities)

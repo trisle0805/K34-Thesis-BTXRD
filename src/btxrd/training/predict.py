@@ -119,6 +119,17 @@ def predict(cfg, checkpoint_path: str | Path, split: str = "test", return_extras
         checkpoint.get("kb_ids"),
         pretrained=False,
     ).to(device)
+    if model.architecture == 'kb_multitask':
+        buffers = checkpoint['model_buffers']
+        for name in ('membership', 'location_mask'):
+            value = buffers.get(name)
+            saved = checkpoint['model_state'].get(f'proposition_branch.{name}')
+            if value is None or saved is None or not torch.equal(value, saved):
+                raise ValueError(f'Checkpoint multitask {name} mismatch')
+        mask = buffers['location_mask']
+        if mask.dtype != torch.bool or mask.shape != (15,):
+            raise ValueError('Checkpoint multitask location_mask mismatch')
+        model.proposition_branch.location_mask.copy_(mask)
     model.load_state_dict(checkpoint["model_state"])
     model.eval()
 
@@ -128,7 +139,7 @@ def predict(cfg, checkpoint_path: str | Path, split: str = "test", return_extras
     probabilities: list[np.ndarray] = []
     cross_attn: list[np.ndarray] = []
     aggregation: list[np.ndarray] = []
-    decoder_extras = {key: [] for key in ('class_attn_weights', 'logits_img', 'logits_kb', 'proposition_scores', 'class_pool_weights')}
+    decoder_extras = {key: [] for key in ('class_attn_weights', 'logits_img', 'logits_kb', 'proposition_scores', 'class_pool_weights', 'kb_class_scores')}
     with torch.no_grad():
         for batch in data.loaders[split]:
             image = batch["image"].to(device, non_blocking=True)
@@ -171,11 +182,13 @@ def predict(cfg, checkpoint_path: str | Path, split: str = "test", return_extras
     extras.update({key: np.concatenate(values) for key, values in decoder_extras.items() if values})
     if model.architecture == 'kb_multitask':
         from btxrd.training.proposition_metrics import auxiliary_auroc
-        targets = model.proposition_branch.literature_targets.cpu().numpy()[y_true]
         locations = np.stack([data.loaders[split].dataset.locations[item].numpy() for item in image_ids])
         tumor = np.asarray([CLASS_NAMES[i].lower() != 'normal' for i in y_true])
         scores = extras['proposition_scores']
-        extras['auxiliary_metrics'] = {'literature': auxiliary_auroc(targets, scores[:, :65]),
+        from sklearn.metrics import accuracy_score, f1_score
+        kb_predictions = extras['kb_class_scores'].argmax(1)
+        extras['auxiliary_metrics'] = {'kb_set': {'accuracy': float(accuracy_score(y_true, kb_predictions)),
+                          'macro_f1': float(f1_score(y_true, kb_predictions, labels=list(range(8)), average='macro', zero_division=0))},
                                       'location': auxiliary_auroc(locations[tumor], scores[tumor, 65:])}
     if hasattr(model, 'knowledge_logit_scale'):
         extras['beta'] = model.knowledge_logit_scale.detach().cpu().numpy()

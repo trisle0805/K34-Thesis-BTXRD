@@ -7,7 +7,7 @@ import pytest
 import torch
 from btxrd.constants import CLASS_NAMES
 from btxrd.config import load_config
-from btxrd.models.kb_multitask import soft_targets
+from btxrd.models.kb_multitask import kb_class_scores, multitask_loss, NORMAL_INDEX
 from btxrd.data.locations import LOCATION_IDS, load_locations, location_definition
 from btxrd.utils.io import sha256_file
 
@@ -23,15 +23,33 @@ def test_m1_default_location_csv(config_overrides):
     assert location_csv.resolve() == repo / 'kb/location_propositions_v1.csv'
 
 
-def test_soft_jaccard():
-    mapping = {name: [] for name in CLASS_NAMES}
-    mapping[CLASS_NAMES[1]] = ['a', 'b']
-    mapping[CLASS_NAMES[2]] = ['b', 'c']
-    matrix = soft_targets(mapping, .1)
-    assert torch.allclose(matrix.sum(1), torch.ones(8))
-    assert matrix[1, 2] == .1 and matrix[1, 1] == .9
-    assert torch.equal(matrix[0], torch.eye(8)[0])
-    assert torch.equal(soft_targets(mapping, 0), torch.eye(8))
+def test_set_scores_and_losses():
+    from types import SimpleNamespace
+    from torch.nn import functional as F
+    membership = torch.zeros(8, 65, dtype=torch.bool)
+    membership[:, 0] = True
+    membership[1, 1] = True
+    scores = torch.zeros(2, 80, requires_grad=True)
+    with torch.no_grad(): scores[:, 1] = torch.tensor(3.).log()
+    k = kb_class_scores(scores, membership)
+    assert k.dtype == torch.float32
+    assert torch.allclose(k[:, 1], torch.full((2,), 2.).log())
+    assert torch.equal(k[:, 0], torch.zeros(2))
+    branch = SimpleNamespace(location_mask=torch.tensor([True] + [False] * 14))
+    labels = torch.tensor([NORMAL_INDEX, (NORMAL_INDEX + 1) % 8])
+    logits = torch.randn(2, 8, requires_grad=True)
+    output = dict(logits=logits, proposition_scores=scores, kb_class_scores=k)
+    locations = torch.zeros(2, 15)
+    cfg = SimpleNamespace(lit_weight=0., loc_weight=0.)
+    assert torch.equal(multitask_loss(output, labels, branch, locations, cfg)[0], F.cross_entropy(logits, labels))
+    cfg.loc_weight = 1.
+    total, losses = multitask_loss(output, labels, branch, locations, cfg)
+    assert torch.equal(losses['loss_bce_loc'], F.binary_cross_entropy_with_logits(scores[1:2, 65:66], locations[1:2, :1]))
+    total.backward()
+    assert scores.grad[0].count_nonzero() == 0
+    assert scores.grad[1, 66:].count_nonzero() == 0
+    labels[:] = NORMAL_INDEX
+    assert multitask_loss(output, labels, branch, locations, cfg)[1]['loss_bce_loc'] == 0
 
 @pytest.mark.parametrize('name', [
     'b0_densenet169', 'a1_densenet169_pecl', 'a2_densenet169_kdecoder',
@@ -96,6 +114,21 @@ def test_original_attention_exact():
     for left, right in zip(reference(queries, tokens), actual(queries, tokens)):
         assert torch.equal(left, right)
 
+def test_requested_location_rows_and_train_mask(tmp_path):
+    from types import SimpleNamespace
+    from btxrd.models.kb_multitask import train_location_mask
+    frame = pd.DataFrame({'image_id': ['a', 'b'], 'label': ['normal', CLASS_NAMES[(NORMAL_INDEX + 1) % 8]]})
+    table = pd.DataFrame({'image_id': ['a', 'b', 'unused', 'unused'],
+        **{key: [0, int(i == 0), None, .5] for i, key in enumerate(LOCATION_IDS)}})
+    path = tmp_path / 'locations.csv'
+    table.to_csv(path, index=False)
+    locations = load_locations(path, frame, 'image_id', 'label')
+    dataset = SimpleNamespace(frame=frame, columns={'image_id': 'image_id', 'label': 'label'}, locations=locations)
+    assert train_location_mask(dataset).tolist() == [True] + [False] * 14
+    assert list(load_locations(path, frame.iloc[:1], 'image_id', 'label')) == ['a']
+    dataset.frame = frame.iloc[:1]
+    assert not train_location_mask(dataset).any()
+
 
 @pytest.mark.parametrize('invalid', ['missing', 'duplicate', 'fractional', 'normal', 'tumor'])
 def test_location_invalid(tmp_path, invalid):
@@ -138,6 +171,12 @@ def test_lifecycle(config_overrides, synthetic_assets, tmp_path, monkeypatch, na
         return load_config(path, config_overrides(output_dir=tmp_path, run_name=name, **(changes | extra)))
     cfg = config()
     embeddings, prop_ids, mapping, _ = _build_model_inputs(cfg)
+    if name == NAMES[1]:
+        from btxrd.knowledge.permutation import permute_embeddings
+        original, original_ids, original_mapping, _ = _build_model_inputs(config(**{'knowledge.embedding_permutation_seed': None}))
+        assert torch.equal(embeddings[65:], original[65:])
+        assert torch.equal(embeddings[:65], permute_embeddings(original[:65], original_ids[:65], 0)[0])
+        assert mapping == original_mapping
     torch.manual_seed(7)
     actual = BTXRDModel(cfg, embeddings, mapping, prop_ids, pretrained=False).eval()
     torch.manual_seed(7)
@@ -158,18 +197,17 @@ def test_lifecycle(config_overrides, synthetic_assets, tmp_path, monkeypatch, na
     history = pd.read_csv(run / 'history.csv')
     assert len(history) == 2
     for prefix in ('train', 'val'):
-        for key in ('loss_ce_soft', 'loss_ce_hard', 'loss_bce_lit', 'loss_bce_loc', 'loss_total'):
+        for key in ('loss_ce', 'loss_kb', 'loss_bce_loc', 'loss_total'):
             assert f'{prefix}_{key}' in history
     prediction, extras = predict(config(), run / 'last.pt', return_extras=True)
     assert extras['proposition_scores'].shape == (len(prediction), 80)
     assert 'auxiliary_metrics' in extras
     info = json.loads((run / 'run_info.json').read_text())
-    assert 'soft_targets_sha256' in info
-    import hashlib
-    matrix = torch.tensor(info['soft_targets'], dtype=torch.float32)
-    assert info['soft_targets_sha256'] == hashlib.sha256(matrix.numpy().tobytes()).hexdigest()
+    assert info['excluded_location_columns'] == []
     assert info['sha256']['location_query_cache'] == sha256_file(loc_cache)
-    assert set(info['knowledge_embedding_source_ids']) == {'literature', 'location'}
+    assert len(info['knowledge_embedding_source_ids']) == 65
+    assert extras['kb_class_scores'].shape == (len(prediction), 8)
+    assert set(extras['auxiliary_metrics']) == {'kb_set', 'location'}
     import sys
     import numpy as np
     from scripts.evaluate import main
@@ -179,8 +217,16 @@ def test_lifecycle(config_overrides, synthetic_assets, tmp_path, monkeypatch, na
     main()
     with np.load(run / 'eval' / 'proposition_scores_test.npz') as artifact:
         assert artifact['scores'].shape == (8, 80)
+        assert artifact['kb_class_scores'].shape == (8, 8)
         assert artifact['ids'].tolist()[-15:] == LOCATION_IDS
     saved = torch.load(run / 'last.pt', weights_only=False)
+    for buffer in ('membership', 'location_mask'):
+        import copy
+        corrupt = copy.deepcopy(saved)
+        corrupt['model_state'][f'proposition_branch.{buffer}'].flatten()[0].logical_not_()
+        torch.save(corrupt, run / 'corrupt.pt')
+        with pytest.raises(ValueError, match='mismatch'):
+            predict(config(), run / 'corrupt.pt')
     saved['model_state']['proposition_branch.Q'][0, 0] += 1
     torch.save(saved, run / 'corrupt.pt')
     with pytest.raises(ValueError, match='mismatch'):

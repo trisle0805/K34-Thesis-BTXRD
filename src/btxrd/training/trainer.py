@@ -147,7 +147,6 @@ def _build_model_inputs(cfg, checkpoint: dict[str, Any] | None = None):
             raise ValueError('Literature query cache requires max_length=64')
         location = load_location_embeddings(cfg.knowledge.location_query_cache, cfg.paths.location_csv)
         literature, _ = permute_embeddings(literature, kb.ids, cfg.knowledge.embedding_permutation_seed)
-        location, _ = permute_embeddings(location, LOCATION_IDS, cfg.knowledge.embedding_permutation_seed)
         queries = torch.cat((literature, location))
         if checkpoint is not None:
             if checkpoint.get('kb_sha256') != kb.sha256 or not torch.equal(queries, checkpoint['model_buffers']['text_embeddings']):
@@ -295,6 +294,13 @@ def train(cfg) -> dict[str, Any]:
         saved['model']['skelex']['vit_config'] = resume_checkpoint['vit_config']
         cfg = Config(saved, cfg.source_path)
     model = BTXRDModel(cfg, embeddings, class_to_ids, kb_ids, pretrained=False if resume_checkpoint else None).to(device)
+    if model.architecture == 'kb_multitask':
+        from btxrd.models.kb_multitask import train_location_mask
+        model.proposition_branch.location_mask.copy_(train_location_mask(data.loaders['train'].dataset))
+        if resume_checkpoint:
+            for name in ('membership', 'location_mask'):
+                if not torch.equal(model.checkpoint_buffers()[name], resume_checkpoint['model_buffers'].get(name)):
+                    raise ValueError(f'Checkpoint multitask {name} mismatch')
     actual_config = cfg.to_dict()
     if cfg.model.backbone == 'skelex':
         actual_config['model']['skelex']['vit_config'] = model.image_encoder.vit.config.to_dict()
@@ -429,13 +435,9 @@ def train(cfg) -> dict[str, Any]:
         "sha256": {name: sha256_file(getattr(cfg.paths, name)) for name in used_files},
     }
     if model.architecture == 'kb_multitask':
-        import hashlib
         info['sha256'].update(_multitask_hashes(cfg))
-        info['soft_targets'] = model.proposition_branch.soft_targets.cpu().tolist()
-        info['soft_targets_sha256'] = hashlib.sha256(model.proposition_branch.soft_targets.cpu().numpy().tobytes()).hexdigest()
-        info['knowledge_embedding_source_ids'] = {
-            'literature': permute_embeddings(embeddings[:65], kb_ids[:65], cfg.knowledge.embedding_permutation_seed)[1],
-            'location': permute_embeddings(embeddings[65:], kb_ids[65:], cfg.knowledge.embedding_permutation_seed)[1]}
+        info['excluded_location_columns'] = [item for item, valid in zip(kb_ids[65:], model.proposition_branch.location_mask.tolist()) if not valid]
+        info['knowledge_embedding_source_ids'] = permute_embeddings(embeddings[:65], kb_ids[:65], cfg.knowledge.embedding_permutation_seed)[1]
     write_json(run_dir / "run_info.json", info)
     return result
 
